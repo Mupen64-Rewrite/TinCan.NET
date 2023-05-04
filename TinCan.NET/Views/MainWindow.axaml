@@ -8,38 +8,38 @@
         x:Class="TinCan.NET.Views.MainWindow"
         Title="MainWindow">
     <StackPanel>
-        <Expander ExpandDirection="Down" Header="Joystick" IsExpanded="True">
+        <Expander HorizontalAlignment="Stretch" ExpandDirection="Down" Header="Joystick" IsExpanded="True">
             <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*">
                 <Viewbox Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Stretch="Uniform">
-                    <controls:Joystick/>
+                    <controls:Joystick />
                 </Viewbox>
                 <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
-                    <Label Content="X"/>
-                    <NumericUpDown/>
+                    <Label Content="X" />
+                    <NumericUpDown />
                 </StackPanel>
                 <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
-                    <Label Content="Y"/>
-                    <NumericUpDown/>
+                    <Label Content="Y" />
+                    <NumericUpDown />
                 </StackPanel>
             </Grid>
         </Expander>
-        <Expander ExpandDirection="Down" Header="Buttons" IsExpanded="True">
+        <Expander HorizontalAlignment="Stretch" ExpandDirection="Down" Header="Buttons" IsExpanded="True">
             <Grid RowDefinitions="*,*,*,*,*" ColumnDefinitions="*,*,*,*,*,*,*,*,*">
                 <!-- D-Pad -->
-                <ToggleButton Grid.Row="0" Grid.Column="1" Content="{icons:MaterialIconExt ArrowUpBold}"/>
-                <ToggleButton Grid.Row="2" Grid.Column="1" Content="{icons:MaterialIconExt ArrowDownBold}"/>
-                <ToggleButton Grid.Row="1" Grid.Column="0" Content="{icons:MaterialIconExt ArrowLeftBold}"/>
-                <ToggleButton Grid.Row="1" Grid.Column="2" Content="{icons:MaterialIconExt ArrowRightBold}"/>
-                
+                <ToggleButton Grid.Row="0" Grid.Column="1" Content="{icons:MaterialIconExt ArrowUpBold}" />
+                <ToggleButton Grid.Row="2" Grid.Column="1" Content="{icons:MaterialIconExt ArrowDownBold}" />
+                <ToggleButton Grid.Row="1" Grid.Column="0" Content="{icons:MaterialIconExt ArrowLeftBold}" />
+                <ToggleButton Grid.Row="1" Grid.Column="2" Content="{icons:MaterialIconExt ArrowRightBold}" />
+
                 <!-- C buttons -->
-                <ToggleButton Grid.Row="0" Grid.Column="7" Content="{icons:MaterialIconExt MenuUp}"/>
-                <ToggleButton Grid.Row="2" Grid.Column="7" Content="{icons:MaterialIconExt MenuDown}"/>
-                <ToggleButton Grid.Row="1" Grid.Column="6" Content="{icons:MaterialIconExt MenuLeft}"/>
-                <ToggleButton Grid.Row="1" Grid.Column="8" Content="{icons:MaterialIconExt MenuRight}"/>
-                <TextBlock Grid.Row="1" Grid.Column="7" Text="C"/>
-                
+                <ToggleButton Grid.Row="0" Grid.Column="7" Content="{icons:MaterialIconExt MenuUp}" />
+                <ToggleButton Grid.Row="2" Grid.Column="7" Content="{icons:MaterialIconExt MenuDown}" />
+                <ToggleButton Grid.Row="1" Grid.Column="6" Content="{icons:MaterialIconExt MenuLeft}" />
+                <ToggleButton Grid.Row="1" Grid.Column="8" Content="{icons:MaterialIconExt MenuRight}" />
+                <TextBlock Grid.Row="1" Grid.Column="7" Text="C" />
+
                 <!-- A, B, Start -->
-                <ToggleButton Grid.Row="1" Grid.Column="4" Content="S"/>
+                <ToggleButton Grid.Row="1" Grid.Column="4" Content="S" />
                 <ToggleButton Grid.Row="3" Grid.Column="5">B</ToggleButton>
                 <ToggleButton Grid.Row="4" Grid.Column="6">A</ToggleButton>
             </Grid>
