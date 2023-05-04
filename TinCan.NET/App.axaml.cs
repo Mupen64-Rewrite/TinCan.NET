@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using TinCan.NET.ViewModels;
 using TinCan.NET.Views;
 
 namespace TinCan.NET;
@@ -18,7 +19,7 @@ public partial class App : Application
         {
             desktop.MainWindow = new MainWindow();
         }
-        
+
         base.OnFrameworkInitializationCompleted();
     }
 }

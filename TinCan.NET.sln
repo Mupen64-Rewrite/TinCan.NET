@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinCan.NET", "TinCan.NET\TinCan.NET.csproj", "{BC50811D-5DA9-477F-82B8-52C3F3B4860D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinCan.NET", "TinCan.NET\TinCan.NET.csproj", "{7AE967EF-1FCF-4DB8-9A27-CC96124481C3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -8,9 +8,9 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{BC50811D-5DA9-477F-82B8-52C3F3B4860D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BC50811D-5DA9-477F-82B8-52C3F3B4860D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BC50811D-5DA9-477F-82B8-52C3F3B4860D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BC50811D-5DA9-477F-82B8-52C3F3B4860D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7AE967EF-1FCF-4DB8-9A27-CC96124481C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AE967EF-1FCF-4DB8-9A27-CC96124481C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AE967EF-1FCF-4DB8-9A27-CC96124481C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AE967EF-1FCF-4DB8-9A27-CC96124481C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,5 +1,7 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
@@ -21,7 +23,8 @@ public class Joystick : Avalonia.Controls.Control
         AffectsRender<Joystick>(JoyXProperty, JoyYProperty);
     }
 
-    public static StyledProperty<sbyte> JoyXProperty = AvaloniaProperty.Register<Joystick, sbyte>(nameof(JoyX));
+    public static StyledProperty<sbyte> JoyXProperty = AvaloniaProperty.Register<Joystick, sbyte>(
+        nameof(JoyX), defaultBindingMode: BindingMode.TwoWay);
 
     public sbyte JoyX
     {
@@ -29,7 +32,8 @@ public class Joystick : Avalonia.Controls.Control
         set => SetValue(JoyXProperty, value);
     }
     
-    public static StyledProperty<sbyte> JoyYProperty = AvaloniaProperty.Register<Joystick, sbyte>(nameof(JoyY));
+    public static StyledProperty<sbyte> JoyYProperty = AvaloniaProperty.Register<Joystick, sbyte>(
+        nameof(JoyY), defaultBindingMode: BindingMode.TwoWay);
     public sbyte JoyY
     {
         get => GetValue(JoyYProperty);
@@ -55,28 +59,41 @@ public class Joystick : Avalonia.Controls.Control
 
     private void UpdatePosition(Point mousePos)
     {
+        // Console.WriteLine($"{mousePos.X}, {mousePos.Y}");
         double normX = mousePos.X / Bounds.Width;
         double normY = mousePos.Y / Bounds.Height;
+        
+        sbyte nextX = (sbyte) Math.Clamp((int) ((normX - 0.5) * 256), -128, 127);
+        sbyte nextY = (sbyte) Math.Clamp((int) ((0.5 - normY) * 256), -128, 127);
 
-        JoyX = (sbyte) (Math.Clamp((int) normX * 256, 0, 255) - 128);
-        JoyY = (sbyte) (Math.Clamp((int) normY * 256, 0, 255) - 128);
+        if (nextX is > -8 and < 8) nextX = 0;
+        if (nextY is > -8 and < 8) nextY = 0;
+
+        JoyX = nextX;
+        JoyY = nextY;
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        UpdatePosition(e.GetPosition(this));
+        PointerPoint ptrPoint = e.GetCurrentPoint(this);
+        if (ptrPoint.Properties.IsLeftButtonPressed)
+            UpdatePosition(ptrPoint.Position);
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
-        UpdatePosition(e.GetPosition(this));
+        PointerPoint ptrPoint = e.GetCurrentPoint(this);
+        if (ptrPoint.Properties.IsLeftButtonPressed)
+            UpdatePosition(ptrPoint.Position);
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-        UpdatePosition(e.GetPosition(this));
+        PointerPoint ptrPoint = e.GetCurrentPoint(this);
+        if (ptrPoint.Properties.IsLeftButtonPressed)
+            UpdatePosition(ptrPoint.Position);
     }
 }
