@@ -16,10 +16,16 @@ namespace TinCan.NET;
 public static unsafe class Plugin
 {
     private static readonly UCString PluginName = new("TinCan.NET");
-    private const string ConstString = "const char*";
 
     #region Unmanaged entry points
 
+    /// <summary>
+    /// Performs any initial setup required by the plugin.
+    /// </summary>
+    /// <param name="coreHandle">A native library handle to the core.</param>
+    /// <param name="debugContext">An opaque pointer to pass to <paramref name="debugCallback"/>.</param>
+    /// <param name="debugCallback">A function to log data back to the frontend.</param>
+    /// <returns>An error code, or <see cref="MupenError.Success"/> otherwise.</returns>
     [C99DeclCode(@"
 #include ""m64p_plugin.h""
 typedef void (*debug_callback_t)(void*, int, const char*);")]
@@ -35,6 +41,10 @@ typedef void (*debug_callback_t)(void*, int, const char*);")]
         return MupenError.Success;
     }
 
+    /// <summary>
+    /// Performs any final cleanup before unloading the plugin.
+    /// </summary>
+    /// <returns>An error code, or <see cref="MupenError.Success"/> otherwise.</returns>
     [UnmanagedCallersOnly(EntryPoint = nameof(PluginShutdown),
         CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     [return: C99Type("m64p_error")]
@@ -43,6 +53,17 @@ typedef void (*debug_callback_t)(void*, int, const char*);")]
         return MupenError.Success;
     }
 
+
+    /// <summary>
+    /// Requests the plugin to return version information about itself.
+    /// </summary>
+    /// <param name="pluginType">A pointer to set to the type of plugin.</param>
+    /// <param name="pluginVersion">A pointer to set to the plugin version.</param>
+    /// <param name="apiVersion">A pointer to set to the API version.</param>
+    /// <param name="pluginName">A pointer to set to a static string of the plugin name.</param>
+    /// <param name="capabilities">A pointer to set to the capabilities. This only applies to the Mupen64Plus core,
+    ///     so it should be set to 0.</param>
+    /// <returns></returns>
     [UnmanagedCallersOnly(EntryPoint = nameof(PluginGetVersion),
         CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     [return: C99Type("m64p_error")]
@@ -74,6 +95,11 @@ typedef void (*debug_callback_t)(void*, int, const char*);")]
         return MupenError.Success;
     }
 
+
+    /// <summary>
+    /// Called by Mupen64Plus upon opening the ROM.
+    /// </summary>
+    /// <returns></returns>
     [UnmanagedCallersOnly(EntryPoint = nameof(RomOpen),
         CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     [return: C99Type("int")]
@@ -88,6 +114,9 @@ typedef void (*debug_callback_t)(void*, int, const char*);")]
         return 1;
     }
 
+    /// <summary>
+    /// Called by Mupen64Plus upon closing the ROM.
+    /// </summary>
     [UnmanagedCallersOnly(EntryPoint = nameof(RomClosed),
         CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static void RomClosed()
@@ -99,16 +128,26 @@ typedef void (*debug_callback_t)(void*, int, const char*);")]
                 lifetime.Shutdown();
             }
         }).Wait();
-        
+
         if (_uiThread?.IsAlive ?? false)
             _uiThread.Join();
         _uiThread = null;
     }
 
+    /// <summary>
+    /// Called by Mupen64Plus to send miscellaneous commands to the controller (e.g. rumble).
+    /// </summary>
+    /// <param name="control">The index of the controller</param>
+    /// <param name="command">The command (a fixed-size byte array)</param>
     [UnmanagedCallersOnly(EntryPoint = nameof(ControllerCommand),
         CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static void ControllerCommand([C99Type("int")] int control, [C99Type("const char*")] byte* command) { }
 
+    /// <summary>
+    /// Called by Mupen64Plus to request the current input state for a controller.
+    /// </summary>
+    /// <param name="control">The index of the controller.</param>
+    /// <param name="buttons">A pointer to a <see cref="Buttons"/> struct to write the state to.</param>
     [UnmanagedCallersOnly(EntryPoint = nameof(GetKeys),
         CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static void GetKeys([C99Type("int")] int control, [C99Type("BUTTONS*")] Buttons* buttons)
@@ -117,6 +156,10 @@ typedef void (*debug_callback_t)(void*, int, const char*);")]
         buttons->Value = 0x00000000;
     }
 
+    /// <summary>
+    /// Called by Mupen64Plus to send a shared struct containing controller inputs.
+    /// </summary>
+    /// <param name="controlInfo"></param>
     [UnmanagedCallersOnly(EntryPoint = nameof(InitiateControllers),
         CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static void InitiateControllers([C99Type("CONTROL_INFO")] ControlInfo controlInfo)
@@ -130,6 +173,11 @@ typedef void (*debug_callback_t)(void*, int, const char*);")]
         CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static void ReadController([C99Type("int")] int control, [C99Type("const char*")] IntPtr command) { }
 
+    /// <summary>
+    /// Called by Mupen64Plus upon receiving a "key down" event from the frontend.
+    /// </summary>
+    /// <param name="keymod">The modifier keys applied</param>
+    /// <param name="scancode">The key released</param>
     [UnmanagedCallersOnly(EntryPoint = nameof(SDL_KeyDown),
         CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static void SDL_KeyDown([C99Type("int")] Keymod keymod, [C99Type("int")] Scancode scancode)
@@ -142,13 +190,19 @@ typedef void (*debug_callback_t)(void*, int, const char*);")]
 
             var inputMgr = InputManager.Instance!;
             var kbDev = KeyboardDevice.Instance!;
-            
+
             // Inject key input into event loop
             inputMgr.ProcessInput(new RawKeyEventArgs(kbDev, (ulong) DateTime.Now.Ticks, desktop.MainWindow!,
-                RawKeyEventType.KeyDown, SDLHelpers.ToAvaloniaKey(scancode), SDLHelpers.ToAvaloniaInputModifiers(keymod)));
+                RawKeyEventType.KeyDown, SDLHelpers.ToAvaloniaKey(scancode),
+                SDLHelpers.ToAvaloniaInputModifiers(keymod)));
         });
     }
 
+    /// <summary>
+    /// Called by Mupen64Plus upon receiving a "key up" event from the frontend.
+    /// </summary>
+    /// <param name="keymod">The modifier keys applied</param>
+    /// <param name="scancode">The key released</param>
     [UnmanagedCallersOnly(EntryPoint = nameof(SDL_KeyUp),
         CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static void SDL_KeyUp([C99Type("int")] Keymod keymod, [C99Type("int")] Scancode scancode)
@@ -161,10 +215,11 @@ typedef void (*debug_callback_t)(void*, int, const char*);")]
 
             var inputMgr = InputManager.Instance!;
             var kbDev = KeyboardDevice.Instance!;
-            
+
             // Inject key input into event loop
             inputMgr.ProcessInput(new RawKeyEventArgs(kbDev, (ulong) DateTime.Now.Ticks, desktop.MainWindow!,
-                RawKeyEventType.KeyUp, SDLHelpers.ToAvaloniaKey(scancode), SDLHelpers.ToAvaloniaInputModifiers(keymod)));
+                RawKeyEventType.KeyUp, SDLHelpers.ToAvaloniaKey(scancode),
+                SDLHelpers.ToAvaloniaInputModifiers(keymod)));
         });
     }
 
