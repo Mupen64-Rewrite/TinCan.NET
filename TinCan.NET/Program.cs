@@ -11,7 +11,6 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        Console.WriteLine($"CLR version: {Environment.Version}");
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 

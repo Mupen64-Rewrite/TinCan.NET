@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Loader;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
@@ -33,10 +34,12 @@ typedef void (*debug_callback_t)(void*, int, const char*);")]
         CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     [return: C99Type("m64p_error")]
     public static MupenError PluginStartup(IntPtr coreHandle, void* debugContext,
-        [C99Type("debug_callback_t")] delegate* unmanaged<void*, int, IntPtr, void> debugCallback)
+        [C99Type("debug_callback_t")] delegate* unmanaged[Cdecl]<void*, int, IntPtr, void> debugCallback)
     {
         DebugContext = debugContext;
         DebugCallback = debugCallback;
+
+        _uiManager = new UIManager();
 
         return MupenError.Success;
     }
@@ -50,6 +53,8 @@ typedef void (*debug_callback_t)(void*, int, const char*);")]
     [return: C99Type("m64p_error")]
     public static MupenError PluginShutdown()
     {
+        _uiManager.StopUIThread();
+        
         return MupenError.Success;
     }
 
@@ -105,12 +110,7 @@ typedef void (*debug_callback_t)(void*, int, const char*);")]
     [return: C99Type("int")]
     public static int RomOpen()
     {
-        _uiThread = new Thread(() =>
-        {
-            var builder = AppBuilder.Configure<App>().UsePlatformDetect().LogToTrace();
-            builder.StartWithClassicDesktopLifetime(Array.Empty<string>());
-        });
-        _uiThread.Start();
+        _uiManager.StartUIThread();
         return 1;
     }
 
@@ -121,17 +121,7 @@ typedef void (*debug_callback_t)(void*, int, const char*);")]
         CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static void RomClosed()
     {
-        Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
-            {
-                lifetime.Shutdown();
-            }
-        }).Wait();
-
-        if (_uiThread?.IsAlive ?? false)
-            _uiThread.Join();
-        _uiThread = null;
+        _uiManager.StopUIThread();
     }
 
     /// <summary>
@@ -153,7 +143,7 @@ typedef void (*debug_callback_t)(void*, int, const char*);")]
     public static void GetKeys([C99Type("int")] int control, [C99Type("BUTTONS*")] Buttons* buttons)
     {
         // this is temporary
-        buttons->Value = 0x00000000;
+        buttons->Value = 0;
     }
 
     /// <summary>
@@ -182,20 +172,7 @@ typedef void (*debug_callback_t)(void*, int, const char*);")]
         CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static void SDL_KeyDown([C99Type("int")] Keymod keymod, [C99Type("int")] Scancode scancode)
     {
-        Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            var lifetime = Application.Current?.ApplicationLifetime;
-            if (lifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-                return;
-
-            var inputMgr = InputManager.Instance!;
-            var kbDev = KeyboardDevice.Instance!;
-
-            // Inject key input into event loop
-            inputMgr.ProcessInput(new RawKeyEventArgs(kbDev, (ulong) DateTime.Now.Ticks, desktop.MainWindow!,
-                RawKeyEventType.KeyDown, SDLHelpers.ToAvaloniaKey(scancode),
-                SDLHelpers.ToAvaloniaInputModifiers(keymod)));
-        });
+        _uiManager.ForwardSDLKeyDown(keymod, scancode);
     }
 
     /// <summary>
@@ -207,20 +184,7 @@ typedef void (*debug_callback_t)(void*, int, const char*);")]
         CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static void SDL_KeyUp([C99Type("int")] Keymod keymod, [C99Type("int")] Scancode scancode)
     {
-        Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            var lifetime = Application.Current?.ApplicationLifetime;
-            if (lifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-                return;
-
-            var inputMgr = InputManager.Instance!;
-            var kbDev = KeyboardDevice.Instance!;
-
-            // Inject key input into event loop
-            inputMgr.ProcessInput(new RawKeyEventArgs(kbDev, (ulong) DateTime.Now.Ticks, desktop.MainWindow!,
-                RawKeyEventType.KeyUp, SDLHelpers.ToAvaloniaKey(scancode),
-                SDLHelpers.ToAvaloniaInputModifiers(keymod)));
-        });
+        _uiManager.ForwardSDLKeyUp(keymod, scancode);
     }
 
     #endregion
@@ -241,9 +205,10 @@ typedef void (*debug_callback_t)(void*, int, const char*);")]
     }
 
     private static void* DebugContext;
-    private static delegate* unmanaged<void*, int, IntPtr, void> DebugCallback;
+    private static delegate* unmanaged[Cdecl]<void*, int, IntPtr, void> DebugCallback;
 
     private static Control* ControlInfo;
 
     private static Thread? _uiThread;
+    private static UIManager _uiManager;
 }
