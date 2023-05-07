@@ -70,7 +70,6 @@ public sealed class UIManager
         });
     }
     
-
     public Buttons QueryInputState()
     {
         return new Buttons { Value = 0 };
