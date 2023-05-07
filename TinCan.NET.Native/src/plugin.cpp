@@ -1,34 +1,75 @@
-#include <cstdint>
 #include <mupen64plus/m64p_plugin.h>
+#include <cstdint>
+#include <filesystem>
+#include <string>
+#include "mupen64plus/m64p_types.h"
+#include "socket.hpp"
+#include "system.hpp"
 #include <msgpack.hpp>
 #include <zmq.hpp>
 
-EXPORT m64p_error CALL
-PluginStartup(m64p_dynlib_handle, void*, void (*)(void*, int, const char*)) {
+const char plugin_name[] = "TinCan.NET";
+
+tc::client_socket* p_socket = nullptr;
+std::filesystem::path socket_path;
+
+EXPORT m64p_error CALL PluginStartup(
+  m64p_dynlib_handle core_handle, void* debug_context,
+  void (*debug_callback)(void*, int, const char*)) {
+  if (p_socket != nullptr)
+    return M64ERR_ALREADY_INIT;
+
+  try {
+    auto socket_dir = tc::get_socket_dir();
+    socket_path = socket_dir / ("ipc-socket-" + std::to_string(tc::get_pid()) + ".sock");
+    
+    p_socket = new tc::client_socket(socket_path);
+    
+    // TODO summon server process
+  }
+  catch (...) {
+    return M64ERR_INTERNAL;
+  }
   return M64ERR_SUCCESS;
 }
 EXPORT m64p_error CALL PluginShutdown(void) {
-  return M64ERR_SUCCESS;
-}
-EXPORT m64p_error CALL
-PluginGetVersion(m64p_plugin_type* type, int* version, int* api_version, const char** name, int* caps) {
-  uint32_t send_bits = 0;
-  
-  // OR in the corresponding bits for paramters
-  send_bits |= uint32_t(type != nullptr) << 0;
-  send_bits |= uint32_t(version != nullptr) << 1;
-  send_bits |= uint32_t(api_version != nullptr) << 2;
-  send_bits |= uint32_t(name != nullptr) << 3;
-  send_bits |= uint32_t(caps != nullptr) << 4;
-  
-  
-  
-  return M64ERR_SUCCESS;
-}
+  if (p_socket == nullptr)
+    return M64ERR_NOT_INIT;
 
+  try {
+    delete p_socket;
+    p_socket = nullptr;
+    
+    std::filesystem::remove(socket_path);
+  }
+  catch (...) {
+    return M64ERR_INTERNAL;
+  }
+
+  return M64ERR_SUCCESS;
+}
+EXPORT m64p_error CALL PluginGetVersion(
+  m64p_plugin_type* type, int* version, int* api_version, const char** name,
+  int* caps) {
+  
+  if (type != nullptr)
+    *type = M64PLUGIN_INPUT;
+  if (version != nullptr)
+    *version = 0x000100;
+  if (api_version != nullptr)
+    *api_version = 0x020100;
+  if (name != nullptr)
+    *name = plugin_name;
+  if (caps != nullptr)
+    *caps = 0;
+
+  return M64ERR_SUCCESS;
+}
 
 EXPORT int CALL RomOpen(void) {
-  return M64ERR_SUCCESS;
+  
+  
+  return 1;
 }
 EXPORT void CALL RomClosed(void) {}
 EXPORT void CALL ControllerCommand(int Control, unsigned char* Command) {}
