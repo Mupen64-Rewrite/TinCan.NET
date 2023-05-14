@@ -3,14 +3,14 @@
 #include <filesystem>
 #include <string>
 #include "mupen64plus/m64p_types.h"
+#include "oslib/process.hpp"
 #include "socket.hpp"
 #include "system.hpp"
-#include <msgpack.hpp>
-#include <zmq.hpp>
 
 const char plugin_name[] = "TinCan.NET";
 
 tc::client_socket* p_socket = nullptr;
+tc::process* proc = nullptr;
 std::filesystem::path socket_path;
 
 EXPORT m64p_error CALL PluginStartup(
@@ -35,10 +35,15 @@ EXPORT m64p_error CALL PluginStartup(
 EXPORT m64p_error CALL PluginShutdown(void) {
   if (p_socket == nullptr)
     return M64ERR_NOT_INIT;
+    
+  p_socket->send_request<void>("shutdown");
 
   try {
     delete p_socket;
     p_socket = nullptr;
+    
+    if (proc->alive())
+      proc->join();
     
     std::filesystem::remove(socket_path);
   }
@@ -67,11 +72,11 @@ EXPORT m64p_error CALL PluginGetVersion(
 }
 
 EXPORT int CALL RomOpen(void) {
-  
-  
-  return 1;
+  return p_socket->send_request<bool>("RomOpen");
 }
-EXPORT void CALL RomClosed(void) {}
+EXPORT void CALL RomClosed(void) {
+  p_socket->send_request<void>("RomClosed");
+}
 EXPORT void CALL ControllerCommand(int Control, unsigned char* Command) {}
 EXPORT void CALL GetKeys(int Control, BUTTONS* Keys) {}
 EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo) {}
