@@ -82,6 +82,7 @@ namespace tc {
     char* m_ptr;
     bool m_should_free;
   };
+  
 }  // namespace tc
 
 #endif
