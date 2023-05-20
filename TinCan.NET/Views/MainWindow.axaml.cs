@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using TinCan.NET.ViewModels;
@@ -9,13 +10,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-#if DEBUG
-#endif
-    }
-
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
         DataContext = new MainWindowViewModel();
+#if DEBUG
+        this.AttachDevTools();
+#endif
     }
 }

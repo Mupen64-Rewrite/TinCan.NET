@@ -7,11 +7,12 @@ project(TinCan.NET.Native
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
+find_package(fmt REQUIRED)
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(zeromq IMPORTED_TARGET
+pkg_check_modules(zeromq REQUIRED IMPORTED_TARGET
   "libzmq >= 4.3.4"
 )
-pkg_check_modules(msgpack IMPORTED_TARGET
+pkg_check_modules(msgpack REQUIRED IMPORTED_TARGET
   "msgpack"
 )
 include(M64PApi)
