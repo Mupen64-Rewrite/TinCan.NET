@@ -1,0 +1,8 @@
+{
+  "dependencies": [
+    "fmt",
+    "pkgconf",
+    "msgpack",
+    "cppzmq"
+  ]
+}

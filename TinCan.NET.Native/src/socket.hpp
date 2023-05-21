@@ -1,7 +1,6 @@
 #ifndef TINCAN_SOCKET_HPP
 #define TINCAN_SOCKET_HPP
 
-#include <bits/chrono.h>
 #include <fmt/core.h>
 #include <chrono>
 #include <cstdint>

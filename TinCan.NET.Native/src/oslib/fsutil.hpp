@@ -115,8 +115,8 @@ namespace oslib {
   }
 #elif defined(_WIN32)
   inline std::filesystem::path get_own_path() {
-    char path[MAX_PATH];
-    if (GetModuleFileNameW(nullptr, path, sizeof(path)) == 0) {
+    wchar_t path[MAX_PATH];
+    if (GetModuleFileNameW(nullptr, path, MAX_PATH) == 0) {
       throw std::system_error(GetLastError(), std::system_category());
     }
     return path;

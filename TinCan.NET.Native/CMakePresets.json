@@ -15,6 +15,11 @@
     {
       "name": "ninja-multi",
       "inherits": "base",
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
       "displayName": "Ninja Multi-Config",
       "generator": "Ninja Multi-Config",
       "cacheVariables": {
@@ -31,7 +36,11 @@
       },
       "displayName": "Visual Studio 2022 (Windows-only)",
       "generator": "Visual Studio 17 2022",
-      "architecture": "x64"
+      "architecture": "x64",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}\\scripts\\buildsystems\\vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET":  "x64-windows-static"
+      }
     }
   ],
   "buildPresets": [

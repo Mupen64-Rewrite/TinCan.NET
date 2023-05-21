@@ -7,14 +7,28 @@ project(TinCan.NET.Native
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-find_package(fmt REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(zeromq REQUIRED IMPORTED_TARGET
-  "libzmq >= 4.3.4"
-)
-pkg_check_modules(msgpack REQUIRED IMPORTED_TARGET
-  "msgpack"
-)
+if(DEFINED VCPKG_VERBOSE)
+  find_package(fmt REQUIRED)
+  find_package(cppzmq REQUIRED)
+  find_package(msgpack-cxx REQUIRED)
+  # set dependency variables
+  set(tc_deps.fmt fmt)
+  set(tc_deps.cppzmq cppzmq)
+  set(tc_deps.msgpack msgpack-cxx)
+else()
+  find_package(fmt REQUIRED)
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(zeromq REQUIRED IMPORTED_TARGET
+    "libzmq >= 4.3.4"
+  )
+  pkg_check_modules(msgpack REQUIRED IMPORTED_TARGET
+    "msgpack"
+  )
+  # set dependency variables
+  set(tc_deps.fmt fmt::fmt)
+  set(tc_deps.cppzmq PkgConfig::libzmq)
+  set(tc_deps.msgpack PkgConfig::msgpack)
+endif()
 include(M64PApi)
 
 message(STATUS "Using assembler: ${CMAKE_ASM_COMPILER_ID}")

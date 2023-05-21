@@ -170,12 +170,13 @@ namespace oslib {
       }
 
       auto wsCmdLine = fmt.str();
+      wsCmdLine.push_back('\0');
 
       STARTUPINFOW startupInfo;
       GetStartupInfoW(&startupInfo);
 
       BOOL res = CreateProcessW(
-        wsAppName.c_str(), wsCmdLine.c_str(), nullptr, nullptr, true,
+        wsAppName.c_str(), wsCmdLine.data(), nullptr, nullptr, true,
         CREATE_NO_WINDOW, nullptr, nullptr, &startupInfo, &proc_info);
 
       if (!res) {
@@ -183,17 +184,19 @@ namespace oslib {
       }
     }
 
-    bool joinable() {
-      DWORD maybe_rc;
-      BOOL res = GetExitCodeProcess(proc_info.hProcess, &maybe_rc);
-      if (maybe_rc == STATUS_PENDING) {
-        return true;
-      }
-      else {
-        if (!rc.has_value())
-          rc = maybe_rc;
+    bool joinable() { 
+      if (rc.has_value())
         return false;
+
+      DWORD maybe_rc;
+      if (!GetExitCodeProcess(proc_info.hProcess, &maybe_rc)) {
+        throw std::system_error(GetLastError(), std::system_category());
       }
+      if (maybe_rc == STILL_ACTIVE)
+        return true;
+      
+      rc = maybe_rc;
+      return false;
     }
 
     // Wait for the process to close. Returns the exit code.
@@ -203,16 +206,18 @@ namespace oslib {
 
       // wait until the process stops
       DWORD res = WaitForSingleObject(proc_info.hProcess, INFINITE);
-
-      if (res == WAIT_OBJECT_0) {
-        DWORD maybe_rc;
-        BOOL res2 = GetExitCodeProcess(proc_info.hProcess, &maybe_rc);
-        rc        = maybe_rc;
-
-        return *rc;
-      }
-      else if (res == WAIT_FAILED) {
-        throw std::system_error(GetLastError(), std::system_category());
+      switch (res) { 
+      case WAIT_OBJECT_0: {
+          DWORD maybe_rc;
+          if (!GetExitCodeProcess(proc_info.hProcess, &maybe_rc)) {
+            throw std::system_error(GetLastError(), std::system_category());
+          }
+          rc = maybe_rc;
+          return *rc;
+      } break;
+      case WAIT_FAILED: {
+          throw std::system_error(GetLastError(), std::system_category());
+      } break;
       }
       throw std::runtime_error("Unexpected wait return value");
     }

@@ -43,6 +43,8 @@ namespace oslib {
 #elif defined(_WIN32)
 #define NOMINMAX
 #include <windows.h>
+#include <ntstatus.h>
+#include <bcrypt.h>
 #include <bit>
 #include <limits>
 
@@ -76,6 +78,7 @@ namespace oslib {
         auto status = BCryptOpenAlgorithmProvider(
           &res, MS_PRIMITIVE_PROVIDER, nullptr, 0
         );
+
         switch (status) { 
           case STATUS_SUCCESS:
             break;
