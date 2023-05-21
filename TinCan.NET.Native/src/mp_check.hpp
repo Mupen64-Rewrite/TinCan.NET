@@ -28,15 +28,6 @@ namespace tc {
     : std::bool_constant<
         details::msgpack_can_pack<T> && details::msgpack_can_convert<T>> {};
 
-  template <class T, size_t N>
-  struct is_msgpack_serializable<std::array<T, N>>
-    : is_msgpack_serializable<T> {};
-
-  template <class T, class U>
-  struct is_msgpack_serializable<std::pair<T, U>>
-    : std::conjunction<is_msgpack_serializable<T>, is_msgpack_serializable<U>> {
-  };
-
   template <class T>
   inline constexpr bool is_msgpack_serializable_v =
     is_msgpack_serializable<T>::value;

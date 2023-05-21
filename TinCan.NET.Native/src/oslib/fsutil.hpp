@@ -8,6 +8,14 @@
 #include <stdexcept>
 #include <utility>
 #include "secrand.hpp"
+
+#ifdef _WIN32
+#define NOMINMAX
+#include <windows.h>
+#undef min
+#undef max
+#endif
+
 namespace oslib {
   // Handle managing a temporary directory.
   class tempdir_handle {
@@ -97,9 +105,22 @@ namespace oslib {
   };
   
 #if defined(__linux__)
-  
+  inline std::filesystem::path get_own_path() {
+    using namespace std::literals;
+    auto path = std::filesystem::read_symlink("/proc/self/exe"sv);
+    if (!std::filesystem::exists(path))
+      throw std::runtime_error("Can't find own path");
+    
+    return std::filesystem::canonical(path);
+  }
 #elif defined(_WIN32)
-
+  inline std::filesystem::path get_own_path() {
+    char path[MAX_PATH];
+    if (GetModuleFileNameW(nullptr, path, sizeof(path)) == 0) {
+      throw std::system_error(GetLastError(), std::system_category());
+    }
+    return path;
+  }
 #endif
 }  // namespace oslib
 

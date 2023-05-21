@@ -48,8 +48,8 @@ namespace msgpack::adaptor {
   class pack<BUTTONS> {
     template <class S>
     msgpack::packer<S>& operator()(msgpack::packer<S>& packer, const BUTTONS& obj) {
-      packer.pack_bin(4);
-      packer.pack_bin_body(reinterpret_cast<const char*>(&obj.Value), sizeof(obj));
+      packer.pack_bin(sizeof(BUTTONS));
+      packer.pack_bin_body(reinterpret_cast<const char*>(&obj.Value), sizeof(BUTTONS));
       return packer;
     }
   };
