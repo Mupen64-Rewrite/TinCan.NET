@@ -12,7 +12,7 @@ if(DEFINED VCPKG_VERBOSE)
   find_package(cppzmq REQUIRED)
   find_package(msgpack-cxx REQUIRED)
   # set dependency variables
-  set(tc_deps.fmt fmt)
+  set(tc_deps.fmt fmt::fmt)
   set(tc_deps.cppzmq cppzmq)
   set(tc_deps.msgpack msgpack-cxx)
 else()
