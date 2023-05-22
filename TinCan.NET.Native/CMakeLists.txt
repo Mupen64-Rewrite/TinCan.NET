@@ -26,7 +26,7 @@ else()
   )
   # set dependency variables
   set(tc_deps.fmt fmt::fmt)
-  set(tc_deps.cppzmq PkgConfig::libzmq)
+  set(tc_deps.cppzmq PkgConfig::zeromq)
   set(tc_deps.msgpack PkgConfig::msgpack)
 endif()
 include(M64PApi)

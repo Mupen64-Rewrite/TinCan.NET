@@ -1,12 +1,9 @@
 using System;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
-using Avalonia.Media.TextFormatting;
-using Avalonia.Themes.Simple;
 using TinCan.NET.Helpers;
 using Brushes = Avalonia.Media.Brushes;
 using Pen = Avalonia.Media.Pen;

@@ -71,7 +71,7 @@ namespace tc {
       }
 
       // send and wait for response (blocking)
-      zmq::message_t msg(buffer.size());
+      zmq::message_t msg;
       m_socket.send(zmq::const_buffer(buffer.data(), buffer.size()));
       auto recv_res = m_socket.recv(msg, zmq::recv_flags::none);
       if (!recv_res)
@@ -126,6 +126,7 @@ namespace tc {
           } break;
         }
       }
+      throw std::runtime_error("THIS SHOULD NOT HAPPEN!!");
     }
 
     std::chrono::milliseconds ping() {

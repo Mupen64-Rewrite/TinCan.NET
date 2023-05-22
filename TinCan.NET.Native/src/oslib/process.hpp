@@ -20,6 +20,7 @@ namespace oslib {
   #include <spawn.h>
 
   #include <array>
+  #include <iostream>
   #include <cerrno>
   #include <cstddef>
   #include <numeric>
@@ -31,30 +32,44 @@ namespace oslib {
       std::string_view program,
       std::initializer_list<std::string_view> args = {}) :
       rc(notexit) {
-      
-      // allocate argv tables
-      size_t total_chars = program.length() + 1;
-      for (std::string_view a : args)
-        total_chars += a.length() + 1;
-
-      auto argstrs = std::make_unique<char[]>(total_chars);
-      auto argv    = std::make_unique<char*[]>(2 + args.size());
-
-      // copy arguments in
-      char* ps  = argstrs.get();
-      char** pp = argv.get();
-
-      // copy in argv[0]
-      *pp++ = ps;
-      ps    = std::copy(program.begin(), program.end(), ps);
-      *ps++ = '\0';
-      // copy in argv[1:]
-      for (std::string_view a : args) {
-        *pp++ = ps;
-        ps    = std::copy(a.begin(), a.end(), ps);
-        *ps++ = '\0';
+      // find size for argv tables
+      size_t argv_table_len = 1 + args.size() + 1;
+      size_t str_table_len = program.size() + 1;
+      for (auto& arg : args) {
+        argv_table_len += 1;
+        str_table_len += arg.length() + 1;
       }
-      posix_spawn(&pid, argv[0], nullptr, nullptr, argv.get(), environ);
+      // allocate tables
+      std::unique_ptr<char[]> str_table = std::make_unique<char[]>(str_table_len);
+      std::unique_ptr<char*[]> argv_table = std::make_unique<char*[]>(argv_table_len);
+
+      char* pst = &str_table[0];
+      char** pat = &argv_table[0];
+      // populate program argument
+      *pat++ = pst;
+      pst = std::copy(program.begin(), program.end(), pst);
+      *pst++ = '\0';
+      // populate arguments
+      for (auto& arg : args) {
+        *pat++ = pst;
+        pst = std::copy(arg.begin(), arg.end(), pst);
+        *pst++ = '\0';
+      }
+      
+      // initializing last few structures
+      posix_spawn_file_actions_t psfa;
+      posix_spawn_file_actions_init(&psfa);
+      
+      posix_spawnattr_t psa;
+      posix_spawnattr_init(&psa);
+      
+      int err;
+      if ((err = posix_spawn(&pid, argv_table[0], &psfa, &psa, argv_table.get(), environ)) != 0) {
+        throw std::system_error(err, std::generic_category());
+      }
+      
+      posix_spawn_file_actions_destroy(&psfa);
+      posix_spawnattr_destroy(&psa);
     }
 
     bool joinable() {
@@ -71,7 +86,9 @@ namespace oslib {
           rc = -WSTOPSIG(stat);
           return true;
         }
+        throw std::runtime_error("THIS SHOULDN'T HAPPEN");
       }
+      return false;
     }
 
     // Wait for the process to close if it hasn't. Returns the exit code.
@@ -95,8 +112,7 @@ namespace oslib {
         rc = -WSTOPSIG(stat);
         return rc;
       }
-      if (rc == notexit)
-        throw std::runtime_error("THIS SHOULDN'T HAPPEN");
+      throw std::runtime_error("THIS SHOULDN'T HAPPEN");
     }
 
   private:

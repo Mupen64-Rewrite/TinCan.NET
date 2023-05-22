@@ -1,6 +1,9 @@
 #ifndef OSLIB_COMMON_HPP
 #define OSLIB_COMMON_HPP
 
+#include <memory>
+#include <type_traits>
+#include <utility>
 #ifdef _MSVC_LANG
   #define OSLIB_CPP_STD _MSVC_LANG
 #else

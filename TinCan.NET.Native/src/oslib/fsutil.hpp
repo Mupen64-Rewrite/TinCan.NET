@@ -9,7 +9,15 @@
 #include <utility>
 #include "secrand.hpp"
 
-#ifdef _WIN32
+#include <mupen64plus/m64p_plugin.h>
+
+#if defined(__linux__)
+#include <link.h>
+#include <dlfcn.h>
+extern "C" EXPORT m64p_error CALL PluginStartup(
+  m64p_dynlib_handle core_handle, void* debug_context,
+  void (*debug_callback)(void*, int, const char*));
+#elif defined(_WIN32)
 #define NOMINMAX
 #include <windows.h>
 #undef min
@@ -107,11 +115,9 @@ namespace oslib {
 #if defined(__linux__)
   inline std::filesystem::path get_own_path() {
     using namespace std::literals;
-    auto path = std::filesystem::read_symlink("/proc/self/exe"sv);
-    if (!std::filesystem::exists(path))
-      throw std::runtime_error("Can't find own path");
-    
-    return std::filesystem::canonical(path);
+    Dl_info dli;
+    dladdr((void*) PluginStartup, &dli);
+    return std::filesystem::canonical(dli.dli_fname);
   }
 #elif defined(_WIN32)
   inline std::filesystem::path get_own_path() {

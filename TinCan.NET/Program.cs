@@ -11,6 +11,7 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        Console.WriteLine("HELLO FROM .NET SIDE");
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 
