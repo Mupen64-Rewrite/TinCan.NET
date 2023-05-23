@@ -61,7 +61,9 @@ public class Postbox
             {
                 didAnything = true;
                 _toSend.TryDequeue(out var sendMsg);
-                _sock.TrySend(ref sendMsg, TimeSpan.MaxValue, false);
+                Console.WriteLine("Postbox received message, sending...");
+                _sock.TrySend(ref sendMsg, TimeSpan.FromMilliseconds(50), false);
+                Console.WriteLine("Sent!");
             }
         }
         catch (Exception)
@@ -93,6 +95,8 @@ public class Postbox
     {
         _recvHandlers.Remove(@event);
     }
+
+    internal PairSocket Socket => _sock;
 
     public event Action<string, dynamic> FallbackHandler; 
 
