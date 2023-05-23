@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics;
+using System.Timers;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -36,15 +38,20 @@ public partial class App : Application
             _server.Register("Shutdown", Server_Shutdown);
             
             _socket = new ResponseSocket($">{desktop.Args[1]}");
-            _socketTimer =
-                new DispatcherTimer(TimeSpan.FromMilliseconds(50.0), DispatcherPriority.Background, PollSocket);
+            _socketTimer = new Timer
+            {
+                Interval = 50.0,
+                AutoReset = true
+            };
+            _socketTimer.Elapsed += PollSocket;
+            _socketTimer.Start();
         }
         base.OnFrameworkInitializationCompleted();
     }
 
-    private void PollSocket(object? sender, EventArgs e)
+    private void PollSocket(object? sender, ElapsedEventArgs e)
     {
-        Console.WriteLine("POLL SOCKET");
+        Debugger.Break();
         if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
             return;
 
@@ -60,9 +67,14 @@ public partial class App : Application
 
     private void Server_Shutdown()
     {
-        if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-            return;
-        desktop.Shutdown();
+        Dispatcher.UIThread.Invoke(() =>
+        {
+            if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                return;
+            _socketTimer.Stop();
+            _socketTimer.Close();
+            desktop.Shutdown();
+        });
     }
 
 
@@ -71,7 +83,7 @@ public partial class App : Application
     {
     }
 
-    private DispatcherTimer _socketTimer = null!;
+    private Timer _socketTimer = null!;
     private ResponseSocket _socket = null!;
     private IPCServer _server = null!;
 }

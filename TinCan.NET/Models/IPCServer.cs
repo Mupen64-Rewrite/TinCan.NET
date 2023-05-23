@@ -26,26 +26,29 @@ public class IPCServer
     public IBufferWriter<byte> Process(ReadOnlyMemory<byte> msg)
     {
         var data = MessagePackSerializer.Deserialize<dynamic>(msg);
-        object? rval = null;
-        try
+        object? res = null;
+        if (data != null)
         {
-            rval = new object?[]
+            try
             {
-                null,
-                _handlers[(string)data[0]].DynamicInvoke((object?[])data[1])
-            };
-        }
-        catch (Exception e)
-        {
-            rval = new object?[]
+                res = new object?[]
+                {
+                    null,
+                    _handlers[(string)data[0]].DynamicInvoke((object?[])data[1])
+                };
+            }
+            catch (Exception e)
             {
-                e.GetType().FullName,
-                e.Message
-            };
+                res = new object?[]
+                {
+                    e.GetType().FullName,
+                    e.Message
+                };
+            }
         }
 
         var outBuf = new ArrayBufferWriter<byte>();
-        MessagePackSerializer.Serialize(outBuf, rval);
+        MessagePackSerializer.Serialize(outBuf, res);
         return outBuf;
     }
 

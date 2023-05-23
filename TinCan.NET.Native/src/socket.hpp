@@ -43,7 +43,8 @@ namespace tc {
       m_socket.bind(path);
       // ensure message integrity
       m_socket.set(zmq::sockopt::req_correlate, true);
-      // wait at most 0.05 s for a response
+      // wait at most 0.05 s for send/recv
+      m_socket.set(zmq::sockopt::sndtimeo, 50);
       m_socket.set(zmq::sockopt::rcvtimeo, 50);
     }
     // Creates a client socket with a ZeroMQ URI.

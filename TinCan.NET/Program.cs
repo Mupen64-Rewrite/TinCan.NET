@@ -1,5 +1,7 @@
 ﻿using Avalonia;
 using System;
+using System.Diagnostics;
+using System.IO;
 
 namespace TinCan.NET;
 
@@ -11,7 +13,7 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        Console.WriteLine("HELLO FROM .NET SIDE");
+        Debugger.Launch();
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 

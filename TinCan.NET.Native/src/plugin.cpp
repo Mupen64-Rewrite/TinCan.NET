@@ -77,17 +77,11 @@ EXPORT m64p_error CALL PluginStartup(
     m64p_log(M64MSG_STATUS, "Forking process");
     g_proc = new oslib::process(
       (self_dir / TC_EXECUTABLE_NAME).string(), {sock_path.string()});
-    m64p_log(M64MSG_STATUS, "Setup complete");
+    m64p_log(M64MSG_STATUS, "Doing a test ping...");
+    g_sock->ping();
+    m64p_log(M64MSG_STATUS, "Ping returned, setup complete");
   }
   catch (...) {
-    if (g_tmpdir != nullptr) {
-      delete g_tmpdir;
-      g_tmpdir = nullptr;
-    }
-    if (g_sock != nullptr) {
-      delete g_sock;
-      g_sock = nullptr;
-    }
     return M64ERR_INTERNAL;
   }
   return M64ERR_SUCCESS;
@@ -97,13 +91,13 @@ EXPORT m64p_error CALL PluginShutdown(void) {
     return M64ERR_NOT_INIT;
   
   
-  m64p_log(M64MSG_STATUS, "Initiating shutdown");
+  // m64p_log(M64MSG_STATUS, "Initiating shutdown");
   g_sock->send_request<void>("Shutdown");
   
-  m64p_log(M64MSG_STATUS, "Awaiting process close");
+  // m64p_log(M64MSG_STATUS, "Awaiting process close");
   g_proc->join();
   
-  m64p_log(M64MSG_STATUS, "Cleaning up");
+  // m64p_log(M64MSG_STATUS, "Cleaning up");
   delete g_proc;
   g_proc = nullptr;
   delete g_sock;

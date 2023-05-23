@@ -3,11 +3,13 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <filesystem>
 #include <initializer_list>
 #include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string_view>
+#include <variant>
 
 namespace oslib {
   class process;
@@ -17,6 +19,7 @@ namespace oslib {
   #pragma region POSIX implementation
   #include <sys/wait.h>
   #include <unistd.h>
+  #include <fcntl.h>
   #include <spawn.h>
 
   #include <array>
@@ -26,6 +29,7 @@ namespace oslib {
   #include <numeric>
   #include <system_error>
 namespace oslib {
+  
   class process {
   public:
     process(
