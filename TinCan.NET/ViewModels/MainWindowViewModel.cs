@@ -1,9 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace TinCan.NET.ViewModels
+namespace TinCan.NET.ViewModels;
+
+public class MainWindowViewModel : ObservableObject
 {
-    public class MainWindowViewModel : ObservableObject
-    {
-        public string Greeting => "Welcome to Avalonia!";
-    }
+    public string Greeting => "Welcome to Avalonia!";
 }

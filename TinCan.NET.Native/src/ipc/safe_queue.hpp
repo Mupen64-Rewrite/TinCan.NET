@@ -55,6 +55,12 @@ namespace tc {
       std::lock_guard lock(m_mutex);
       std::queue<T, Container>::pop();
     }
+    
+    void pop_return(reference ref) {
+      std::lock_guard lock(m_mutex);
+      ref = std::move(std::queue<T, Container>::front());
+      std::queue<T, Container>::pop();
+    }
 
     void swap(safe_queue& rhs) {
       // swapping with self does nothing
