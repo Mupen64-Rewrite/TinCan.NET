@@ -62,7 +62,8 @@ public class Postbox
                 didAnything = true;
                 _toSend.TryDequeue(out var sendMsg);
                 Console.WriteLine("Postbox received message, sending...");
-                _sock.TrySend(ref sendMsg, TimeSpan.FromMilliseconds(50), false);
+                _sock.TrySend(ref sendMsg, TimeSpan.Zero, false);
+                _sock.TrySendFrame(new byte[0]);
                 Console.WriteLine("Sent!");
             }
         }
@@ -83,6 +84,8 @@ public class Postbox
         var buffer = new ArrayBufferWriter<byte>();
         var msg = new Msg();
         MessagePackSerializer.Serialize(buffer, data);
+        msg.InitPool(buffer.GetSpan().Length);
+        buffer.WrittenMemory.TryCopyTo(msg.SliceAsMemory());
         _toSend.Enqueue(msg);
     }
 
