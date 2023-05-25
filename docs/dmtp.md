@@ -52,7 +52,7 @@ The following defines the layout of a MESSAGE packet:
 evt_len bytes, padded up to the nearest 4: event name
 4 bytes: u32 msg_len: length of message
 ===========================================================
-msg_len bytes: event data, structured in msgpack format
+msg_len bytes: arbitrary event data
 ===========================================================
 ```
 
