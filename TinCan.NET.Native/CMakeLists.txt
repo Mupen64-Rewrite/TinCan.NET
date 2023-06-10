@@ -17,6 +17,7 @@ if(DEFINED VCPKG_VERBOSE)
   set(tc_deps.msgpack msgpack-cxx)
 else()
   find_package(fmt REQUIRED)
+  find_package(Boost REQUIRED)
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(zeromq REQUIRED IMPORTED_TARGET
     "libzmq >= 4.3.4"

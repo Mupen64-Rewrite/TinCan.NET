@@ -1,3 +1,17 @@
 {
-  "editor.tabSize": 4
+  "[csharp]": {
+    "editor.maxTokenizationLineLength": 2500,
+    "editor.tabSize": 4
+  },
+  "[cpp]": {
+    "editor.wordBasedSuggestions": false,
+    "editor.suggest.insertMode": "replace",
+    "editor.semanticHighlighting.enabled": true,
+    "editor.quickSuggestions": {
+      "comments": "on",
+      "strings": "on",
+      "other": "on"
+    },
+    "editor.tabSize": 2
+  }
 }
