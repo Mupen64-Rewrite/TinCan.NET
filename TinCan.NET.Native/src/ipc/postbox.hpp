@@ -74,14 +74,7 @@ namespace tc {
           // Message was serialized before enqueuing, just send it
           zmq::message_t to_send;
           m_to_send.pop_return(to_send);
-          std::cout << "Postbox received message, sending...\n";
           auto res = m_sock.send(to_send, zmq::send_flags::none);
-          if (res.has_value()) {
-            std::cout << "Sent!\n";
-          }
-          else {
-            std::cout << "Timed out!\n";
-          }
         }
       }
       catch (...) {

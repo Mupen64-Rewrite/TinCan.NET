@@ -9,12 +9,7 @@ macro(tc_link_dependencies target)
   endif()
 endmacro()
 
-add_executable(tincan-client
-  "test_client.cpp"
-)
-tc_link_dependencies(tincan-client)
-
-# add_library(tincan-bridge MODULE
-#   "plugin.cpp"
-# )
-# tc_link_dependencies(tincan-bridge)
+add_library(tincan-bridge MODULE
+  "plugin.cpp"
+  global.cpp global.hpp)
+tc_link_dependencies(tincan-bridge)

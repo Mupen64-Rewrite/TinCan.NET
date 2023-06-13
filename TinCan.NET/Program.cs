@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using System;
+using System.Linq;
 using System.Threading;
 using NetMQ.Monitoring;
 using TinCan.NET.Models;
@@ -14,38 +15,12 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        Postbox postbox;
-        Console.Write("Socket URI: ");
-        postbox = new Postbox(Console.ReadLine()!);
-
-        CancellationTokenSource stopSource = new CancellationTokenSource();
-        Thread postThread = new Thread((stopToken) =>
-        {
-            CancellationToken ct = (CancellationToken)(stopToken ?? throw new ArgumentNullException(nameof(stopToken)));
-            while (true)
-            {
-                postbox.EventLoop(in ct);
-                if (ct.IsCancellationRequested)
-                    return;
-            }
-        });
-        postThread.Start(stopSource.Token);
-
-        while (true)
-        {
-            string line = Console.ReadLine()!;
-            if (line == "exit")
-                break;
-            var split = line.IndexOf(' ');
-            postbox.Enqueue(line[..split], line[split..]);
-        }
-        
-        stopSource.Cancel();
-        if (postThread.IsAlive)
-            postThread.Join();
-        
-        return;
+        #if false
+        TestSocketClient.Run();
+        #else
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        #endif
+
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.

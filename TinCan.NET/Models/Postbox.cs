@@ -3,6 +3,8 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using CSZeroMQ;
+using CSZeroMQ.Constants;
 using MessagePack;
 using NetMQ;
 using NetMQ.Sockets;
@@ -13,11 +15,13 @@ public class Postbox
 {
     public Postbox(string uri)
     {
-        _sock = new PairSocket();
+        _sock = new ZMQSocket(SocketType.Pair);
+        _sock.SetOption(SocketOptionInt.SendTimeout, 50);
+        _sock.SetOption(SocketOptionInt.ReceiveTimeout, 50);
         _sock.Connect(uri);
 
-        _toSend = new ConcurrentQueue<Msg>();
-        _recvHandlers = new Dictionary<string, Action<dynamic>>();
+        _toSend = new ConcurrentQueue<byte[]>();
+        _recvHandlers = new Dictionary<string, Action<object[]>>();
     }
 
     public void EventLoop(in CancellationToken stopFlag)
@@ -26,18 +30,21 @@ public class Postbox
 
         try
         {
-            var recvResult = _sock.TryReceiveFrameBytes(TimeSpan.Zero, out var data);
-            if (recvResult)
+            var recvResult = _sock.ReceiveMsg();
+            
+            if (recvResult != null)
             {
                 didAnything = true;
                 Console.WriteLine("RECEIVED");
                 // unpack data
-                var unpacked = MessagePackSerializer.Deserialize<dynamic>(data);
+                var unpacked = MessagePackSerializer.Deserialize<dynamic>(recvResult.Span.ToArray());
                 // ensure correct formatting
                 if (unpacked.GetType() != typeof(object[]))
                     throw new ApplicationException("Bad format (!Array.isArray(root))");
                 if (unpacked.Length != 2)
                     throw new ApplicationException("Bad format (root.length != 2)");
+                if (unpacked[1].GetType() != typeof(object[]))
+                    throw new ApplicationException("Bad format (!Array.isArray(root[1]))");
             
                 // find destination and invoke it
                 if (_recvHandlers.ContainsKey(unpacked[0]))
@@ -57,19 +64,17 @@ public class Postbox
 
         try
         {
-            if (!_toSend.IsEmpty)
+            if (_toSend.TryDequeue(out var sendMsg))
             {
                 didAnything = true;
-                _toSend.TryDequeue(out var sendMsg);
                 Console.WriteLine("Postbox received message, sending...");
-                _sock.TrySend(ref sendMsg, TimeSpan.Zero, false);
-                _sock.TrySendFrame(new byte[0]);
+                _sock.Send(sendMsg);
                 Console.WriteLine("Sent!");
             }
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            // ignored
+            Console.WriteLine(e);
         }
 
         if (!didAnything && !stopFlag.IsCancellationRequested)
@@ -81,15 +86,11 @@ public class Postbox
     public void Enqueue(string @event, params object[] args)
     {
         var data = new object[] { @event, args };
-        var buffer = new ArrayBufferWriter<byte>();
-        var msg = new Msg();
-        MessagePackSerializer.Serialize(buffer, data);
-        msg.InitPool(buffer.GetSpan().Length);
-        buffer.WrittenMemory.TryCopyTo(msg.SliceAsMemory());
-        _toSend.Enqueue(msg);
+        var dataBin = MessagePackSerializer.Serialize(data);
+        _toSend.Enqueue(dataBin);
     }
 
-    public void Listen(string @event, Action<dynamic> listener)
+    public void Listen(string @event, Action<object[]> listener)
     {
         _recvHandlers[@event] = listener;
     }
@@ -99,11 +100,11 @@ public class Postbox
         _recvHandlers.Remove(@event);
     }
 
-    internal PairSocket Socket => _sock;
+    internal ZMQSocket Socket => _sock;
 
-    public event Action<string, dynamic> FallbackHandler; 
+    public event Action<string, object[]> FallbackHandler = (evt, arg) => {};
 
-    private PairSocket _sock;
-    private ConcurrentQueue<Msg> _toSend;
-    private Dictionary<string, Action<dynamic>> _recvHandlers;
+    private ZMQSocket _sock;
+    private ConcurrentQueue<byte[]> _toSend;
+    private Dictionary<string, Action<object[]>> _recvHandlers;
 }
