@@ -8,8 +8,11 @@
 #include <fmt/core.h>
 #include <mupen64plus/m64p_types.h>
 #include "ipc/postbox.hpp"
+#include "mupen64plus/m64p_plugin.h"
 #include "util/fs_helper.hpp"
 #include <boost/process.hpp>
+#include <array>
+#include <atomic>
 #include <optional>
 #include <stop_token>
 #include <string_view>
@@ -17,15 +20,22 @@
 
 namespace tc {
   
+  // Core handles
   extern m64p_dynlib_handle g_core_handle;
   extern void* g_log_context;
   extern void (*g_log_callback)(void* context, int level, const char* str);
   
+  // IPC objects
   extern std::optional<tc::tempdir_handle> g_tempdir;
   extern std::optional<postbox> g_postbox;
   
+  // Execution objects
   extern std::optional<std::jthread> g_post_thread;
   extern std::optional<boost::process::child> g_process;
+  
+  // State objects
+  extern std::optional<std::span<CONTROL, 4>> g_control_states;
+  extern std::array<std::atomic_uint32_t, 4> g_input_states;
   
   void post_thread_loop(std::stop_token tok);
   

@@ -68,16 +68,18 @@ TC_EXPORT(m64p_error) PluginShutdown() {
   
   tc::trace(M64MSG_VERBOSE, "Signaling shutdown");
   tc::g_postbox->enqueue("Shutdown"sv);
+  
   tc::trace(M64MSG_VERBOSE, "Awaiting shutdown");
   if (tc::g_process.has_value() && tc::g_process->joinable())
     tc::g_process->join();
-  tc::trace(M64MSG_VERBOSE, "Cleaning up postbox");
+  
+  tc::trace(M64MSG_VERBOSE, "Cleaning up");
   tc::g_postbox.reset();
   
-  tc::trace(M64MSG_VERBOSE, "Stopping thread");
   tc::g_post_thread->request_stop();
   tc::g_post_thread->join();
   tc::g_post_thread.reset();
+  
   tc::trace(M64MSG_VERBOSE, "Shutdown complete");
   return M64ERR_SUCCESS;
 }
