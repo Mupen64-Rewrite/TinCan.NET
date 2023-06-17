@@ -1,5 +1,6 @@
 macro(tc_link_dependencies target)
   target_compile_features(${target} PUBLIC cxx_std_20)
+  target_link_libraries(${target} PUBLIC ${CMAKE_DL_LIBS})
   if(DEFINED VCPKG_VERBOSE)
     target_link_libraries(${target} PUBLIC fmt::fmt cppzmq msgpack-cxx m64p::api)
   else()
@@ -14,13 +15,13 @@ macro(tc_link_dependencies target)
 endmacro()
 
 add_library(tincan-bridge MODULE
-  "duthomhas/csprng.cpp"
-  "duthomhas/csprng.h"
-  "duthomhas/csprng.hpp"
-  "duthomhas/is_iterable.hpp"
   "ipc/postbox.hpp"
   "ipc/safe_queue.hpp"
   "tl/function_ref.hpp"
+  "util/fs_helper.cpp"
+  "util/fs_helper.hpp"
+  "util/bin_cast.hpp"
+  "util/string_hash.hpp"
   "plugin.cpp"
   "global.cpp"
   "global.hpp"

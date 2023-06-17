@@ -15,12 +15,11 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        #if false
+#if false
         TestSocketClient.Run();
         #else
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         #endif
-
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.

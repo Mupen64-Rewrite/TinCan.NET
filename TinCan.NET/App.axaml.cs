@@ -35,15 +35,20 @@ public partial class App : Application
             case IClassicDesktopStyleApplicationLifetime ltDesktop:
             {
 
-                if (ltDesktop.Args is {Length: 2})
+                if (ltDesktop.Args is {Length: 1})
                 {
                     _stopSource = new CancellationTokenSource();
-                    _postbox = new Postbox(ltDesktop.Args[1]);
+                    _postbox = new Postbox(ltDesktop.Args[0]);
                     _postboxLoop = new Thread(PostboxLoop);
                     
                     InitPostboxHandlers();
+                    ltDesktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
                     
                     _postboxLoop.Start(_stopSource.Token);
+                }
+                else
+                {
+                    ltDesktop.MainWindow = new MainWindow();
                 }
                 
                 break;

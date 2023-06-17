@@ -33,6 +33,13 @@ namespace tc {
       m_sock.set(zmq::sockopt::rcvtimeo, 50);
       m_sock.bind(uri);
     }
+    postbox(const std::string& uri) : postbox(uri.c_str()) {}
+    
+    postbox(postbox&&) = default;
+    
+    std::string endpoint() {
+      return m_sock.get(zmq::sockopt::last_endpoint);
+    }
 
     // Performs 1 iteration of the postbox's event loop.
     void event_loop(const std::stop_token& stop) {

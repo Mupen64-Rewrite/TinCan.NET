@@ -48,6 +48,7 @@ public class Postbox
 
                 string key = unpacked[0];
                 object[] args = unpacked[1];
+                Console.WriteLine($"Received event \"{key}\"");
                 // find destination and invoke it
                 if (_recvHandlers.TryGetValue(key, out var recvHandler))
                 {
