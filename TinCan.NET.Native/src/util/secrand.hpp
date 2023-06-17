@@ -7,40 +7,48 @@
 #include <random>
 #include <system_error>
 
-namespace tc {
-  // Like random_device, but guaranteed to be secure.
-  class secure_random_device;
-}
 
-#if defined(__linux__) || defined(__MACH__)
 namespace tc {
   class secure_random_device {
   public:
-    using result_type = unsigned int;
+    using result_type = uint32_t;
   
-    secure_random_device() :
-      dev("/dev/urandom") {}
+    secure_random_device();
+    
+    ~secure_random_device();
       
     secure_random_device(const secure_random_device&) = delete;
+    secure_random_device& operator=(const secure_random_device&) = delete;
     
-    // (at least for libstdc++ and libc++)
-    // Fetches a random integer from /dev/urandom.
-    result_type operator()() {
-      return dev();
+    inline secure_random_device(secure_random_device&& rhs) : m_hnd(rhs.m_hnd)  {
+      rhs.m_hnd = -1;
+    }
+    inline secure_random_device& operator=(secure_random_device&& rhs) {
+      m_hnd = rhs.m_hnd;
+      rhs.m_hnd = -1;
+      return *this;
     }
     
+    // Fetch a random integer.
+    result_type operator()();
+    
     static constexpr result_type min() {
-      return std::random_device::min();
+      return std::numeric_limits<result_type>::min();
     }
     
     static constexpr result_type max() {
-      return std::random_device::max();
+      return std::numeric_limits<result_type>::max();
     }
   private:
-    std::random_device dev;
+#if defined(__linux__) || defined(__MACH__)
+    int m_hnd;
+#elif defined(_WIN32)
+    BCRYPT_ALG_HANDLE m_hnd;
+#endif
   };
 }
-#elif defined(_WIN32)
+
+#if 0
 #define NOMINMAX
 #include <windows.h>
 #include <ntstatus.h>
@@ -54,7 +62,7 @@ namespace tc {
 namespace tc {
   class secure_random_device {
   public:
-    using result_type = unsigned int;
+    using result_type = uint32_t;
 
     secure_random_device() : m_hnd(get_bcrypt_alg()) {}
     secure_random_device(const secure_random_device&) = delete;

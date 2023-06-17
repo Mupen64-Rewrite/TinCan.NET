@@ -17,11 +17,16 @@ endmacro()
 add_library(tincan-bridge MODULE
   "ipc/postbox.hpp"
   "ipc/safe_queue.hpp"
+  
   "tl/function_ref.hpp"
+  
   "util/fs_helper.cpp"
   "util/fs_helper.hpp"
   "util/bin_cast.hpp"
   "util/string_hash.hpp"
+  "util/secrand.cpp"
+  "util/secrand.hpp"
+  
   "plugin.cpp"
   "global.cpp"
   "global.hpp"
