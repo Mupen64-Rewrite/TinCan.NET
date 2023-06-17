@@ -13,5 +13,6 @@
       "other": "on"
     },
     "editor.tabSize": 2
-  }
+  },
+  "cmake.sourceDirectory": "/home/jgcodes/Documents/Code/C#/TinCan.NET/TinCan.NET.Native"
 }

@@ -4,6 +4,7 @@
 #include <mupen64plus/m64p_types.h>
 
 #include "global.hpp"
+#include <boost/process/detail/child_decl.hpp>
 
 #define TC_IF_NOT_NULL(ptr) \
   if (ptr)                  \
@@ -17,7 +18,6 @@ PluginStartup(
   tc::core_handle = core_handle;
   tc::log_context = log_context;
   tc::log_callback = log_callback;
-
 
   return M64ERR_SUCCESS;
 }
@@ -44,3 +44,26 @@ TC_EXPORT(int) RomOpen() {
 }
 
 TC_EXPORT(void) RomClosed() {}
+
+TC_EXPORT(void) InitiateControllers() {
+  
+}
+
+TC_EXPORT(void) GetKeys(int index, BUTTONS* keys) {
+  
+}
+
+TC_EXPORT(void) ControllerCommand(int index, unsigned char* data) {
+}
+
+TC_EXPORT(void) ReadController(int index, unsigned char* data) {
+  
+}
+
+TC_EXPORT(void) SDL_KeyDown(int modifiers, int scancode) {
+  
+}
+
+TC_EXPORT(void) SDL_KeyUp(int modifiers, int scancode) {
+  
+}

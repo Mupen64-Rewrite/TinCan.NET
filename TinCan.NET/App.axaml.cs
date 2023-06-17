@@ -1,9 +1,11 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using MessageBox.Avalonia;
 using MessageBox.Avalonia.DTO;
 using TinCan.NET.Models;
@@ -21,28 +23,82 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-            return;
         
-        // ask for connection path
-        Console.Write("Input socket URI: ");
-        string sockPath = Console.ReadLine()!;
-
-        _postbox = new Postbox(sockPath);
-        _postbox.FallbackHandler += (name, param) =>
+        if (ApplicationLifetime is not IControlledApplicationLifetime ltControlled)
         {
-            Console.WriteLine($"Received request {name}");
-        };
-        _stopSource = new CancellationTokenSource();
-        
-        _postboxLoop = new Thread(PostboxLoop);
-        _postboxLoop.Start(_stopSource.Token);
-        
-        desktop.Exit += DesktopOnExit;
-        
-        desktop.MainWindow = new MainWindow();
+            Environment.Exit(69);
+            return;
+        }
+        ltControlled.Exit += OnExit;
+        switch (ltControlled)
+        {
+            case IClassicDesktopStyleApplicationLifetime ltDesktop:
+            {
 
+                if (ltDesktop.Args is {Length: 2})
+                {
+                    _stopSource = new CancellationTokenSource();
+                    _postbox = new Postbox(ltDesktop.Args[1]);
+                    _postboxLoop = new Thread(PostboxLoop);
+                    
+                    InitPostboxHandlers();
+                    
+                    _postboxLoop.Start(_stopSource.Token);
+                }
+                
+                break;
+            }
+            default:
+            {
+                ltControlled.Shutdown(69);
+                break;
+            }
+        }
+        
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private void InitPostboxHandlers()
+    {
+        _postbox!.Listen("Shutdown", () =>
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var lt = Application.Current?.ApplicationLifetime;
+                if (lt is IControlledApplicationLifetime ltControlled)
+                {
+                    ltControlled.Shutdown();
+                }
+                else
+                {
+                    Environment.Exit(0);
+                }
+            });
+        });
+        _postbox!.Listen("OpenWindow", () =>
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var lt = Application.Current?.ApplicationLifetime;
+                if (lt is IClassicDesktopStyleApplicationLifetime ltDesktop)
+                {
+                    ltDesktop.MainWindow = new MainWindow();
+                }
+            });
+        });
+        _postbox!.Listen("CloseWindow", () =>
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var lt = Application.Current?.ApplicationLifetime;
+                if (lt is IClassicDesktopStyleApplicationLifetime ltDesktop)
+                {
+                    ltDesktop.MainWindow?.Close();
+                    ltDesktop.MainWindow = null;
+                }
+            });
+        });
+        
     }
 
     private void PostboxLoop(object? stopToken)
@@ -50,20 +106,20 @@ public partial class App : Application
         CancellationToken ct = (CancellationToken) (stopToken ?? throw new ArgumentNullException(nameof(stopToken)));
         while (true)
         {
-            _postbox.EventLoop(in ct);
+            _postbox!.EventLoop(in ct);
             if (ct.IsCancellationRequested)
                 return;
         }
     }
 
-    private void DesktopOnExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
+    private void OnExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
     {
-        _stopSource.Cancel();
+        _stopSource?.Cancel();
         e.ApplicationExitCode = 0;
     }
 
 
-    private Postbox _postbox;
-    private CancellationTokenSource _stopSource;
+    private Postbox? _postbox;
+    private CancellationTokenSource? _stopSource;
     private Thread? _postboxLoop;
 }

@@ -21,7 +21,7 @@ public class Postbox
         _sock.Connect(uri);
 
         _toSend = new ConcurrentQueue<byte[]>();
-        _recvHandlers = new Dictionary<string, Action<object[]>>();
+        _recvHandlers = new Dictionary<string, Action>();
     }
 
     public void EventLoop(in CancellationToken stopFlag)
@@ -45,15 +45,17 @@ public class Postbox
                     throw new ApplicationException("Bad format (root.length != 2)");
                 if (unpacked[1].GetType() != typeof(object[]))
                     throw new ApplicationException("Bad format (!Array.isArray(root[1]))");
-            
+
+                string key = unpacked[0];
+                object[] args = unpacked[1];
                 // find destination and invoke it
-                if (_recvHandlers.ContainsKey(unpacked[0]))
+                if (_recvHandlers.TryGetValue(key, out var recvHandler))
                 {
-                    _recvHandlers[unpacked[0]](unpacked[1]);
+                    recvHandler.DynamicInvoke(args);
                 }
                 else
                 {
-                    FallbackHandler(unpacked[0], unpacked[1]);
+                    FallbackHandler(key, args);
                 }
             }
         }
@@ -90,7 +92,7 @@ public class Postbox
         _toSend.Enqueue(dataBin);
     }
 
-    public void Listen(string @event, Action<object[]> listener)
+    public void Listen(string @event, Action listener)
     {
         _recvHandlers[@event] = listener;
     }
@@ -106,5 +108,5 @@ public class Postbox
 
     private ZMQSocket _sock;
     private ConcurrentQueue<byte[]> _toSend;
-    private Dictionary<string, Action<object[]>> _recvHandlers;
+    private Dictionary<string, Action> _recvHandlers;
 }
