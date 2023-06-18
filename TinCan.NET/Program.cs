@@ -1,9 +1,5 @@
 ﻿using Avalonia;
 using System;
-using System.Linq;
-using System.Threading;
-using NetMQ.Monitoring;
-using TinCan.NET.Models;
 
 namespace TinCan.NET;
 

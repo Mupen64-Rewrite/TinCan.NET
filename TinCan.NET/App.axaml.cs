@@ -1,16 +1,14 @@
 using System;
-using System.Diagnostics;
 using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
-using MessageBox.Avalonia;
-using MessageBox.Avalonia.DTO;
 using TinCan.NET.Models;
 using TinCan.NET.ViewModels;
 using TinCan.NET.Views;
+using Control = TinCan.NET.Helpers.Control;
 
 namespace TinCan.NET;
 
@@ -43,12 +41,16 @@ public partial class App : Application
                     
                     InitPostboxHandlers();
                     ltDesktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-                    
+                    // notify C++ side that we are ready
                     _postboxLoop.Start(_stopSource.Token);
+                    _postbox.Enqueue("Ready");
                 }
                 else
                 {
-                    ltDesktop.MainWindow = new MainWindow();
+                    ltDesktop.MainWindow = new MainWindow()
+                    {
+                        DataContext = new MainWindowViewModel()
+                    };
                 }
                 
                 break;
@@ -80,26 +82,50 @@ public partial class App : Application
                 }
             });
         });
-        _postbox!.Listen("OpenWindow", () =>
+        _postbox!.Listen("RequestUpdateControls", () =>
         {
             Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var lt = Application.Current?.ApplicationLifetime;
                 if (lt is IClassicDesktopStyleApplicationLifetime ltDesktop)
                 {
-                    ltDesktop.MainWindow = new MainWindow();
+                    var vm = new MainWindowViewModel
+                    {
+                        Postbox = new WeakReference<Postbox>(_postbox!)
+                    };
+                    var win = new MainWindow
+                    {
+                        DataContext = vm,
+                        CanResize = false
+                    };
+                    
+                    
+                    win.Hide();
+                    ltDesktop.MainWindow = win;
+                }
+            });
+            
+            _postbox!.Enqueue("UpdateControls", 0, true, 0, Control.PluginType.None, Control.ControllerType.Standard);
+        });
+        _postbox!.Listen("ShowWindows", () =>
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var lt = Application.Current?.ApplicationLifetime;
+                if (lt is IClassicDesktopStyleApplicationLifetime ltDesktop)
+                {
+                    ltDesktop.MainWindow?.Show();
                 }
             });
         });
-        _postbox!.Listen("CloseWindow", () =>
+        _postbox!.Listen("HideWindows", () =>
         {
             Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var lt = Application.Current?.ApplicationLifetime;
                 if (lt is IClassicDesktopStyleApplicationLifetime ltDesktop)
                 {
-                    ltDesktop.MainWindow?.Close();
-                    ltDesktop.MainWindow = null;
+                    ltDesktop.MainWindow?.Hide();
                 }
             });
         });

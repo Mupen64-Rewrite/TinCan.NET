@@ -18,7 +18,7 @@ std::optional<tc::postbox> tc::g_postbox;
 std::optional<std::jthread> tc::g_post_thread;
 std::optional<boost::process::child> tc::g_process;
 
-std::optional<std::span<CONTROL, 4>> tc::g_control_states;
+CONTROL* tc::g_control_states = nullptr;
 std::array<std::atomic_uint32_t, 4> tc::g_input_states { 0, 0, 0, 0 };
 
 static void do_log(const msgpack::object& obj) {
@@ -26,18 +26,22 @@ static void do_log(const msgpack::object& obj) {
   tc::trace((m64p_msg_level) std::get<0>(args), std::get<1>(args));
 }
 static void do_update_inputs(const msgpack::object& obj) {
-  auto args = obj.as<std::tuple<int, std::array<char, 4>>>();
-  tc::g_input_states[std::get<0>(args)] = std::bit_cast<uint32_t>(std::get<1>(args));
+  auto args = obj.as<std::tuple<int, uint32_t>>();
+  tc::g_input_states[std::get<0>(args)] = std::get<1>(args);
 }
 static void do_update_controls(const msgpack::object& obj) {
-  auto args = obj.as<std::tuple<int, std::array<char, sizeof(CONTROL)>>>();
-  memcpy(&(*tc::g_control_states)[std::get<0>(args)], &std::get<1>(args), sizeof(CONTROL));
+  auto args = obj.as<std::tuple<int, bool, int, int, int>>();
+  auto& state = tc::g_control_states[std::get<0>(args)];
+  state.Present = std::get<1>(args);
+  state.RawData = std::get<2>(args);
+  state.Plugin = std::get<3>(args);
+  state.Type = std::get<4>(args);
 }
 
 void tc::setup_post_listeners() {
-  g_postbox->listen("Log", &do_log);
-  g_postbox->listen("UpdateInputs", &do_update_inputs);
-  g_postbox->listen("UpdateControls", &do_update_controls);
+  g_postbox->listen("Log", do_log);
+  g_postbox->listen("UpdateInputs", do_update_inputs);
+  g_postbox->listen("UpdateControls", do_update_controls);
 }
 
 void tc::post_thread_loop(std::stop_token tok) {

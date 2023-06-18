@@ -1,13 +1,10 @@
 using System;
-using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using CSZeroMQ;
 using CSZeroMQ.Constants;
 using MessagePack;
-using NetMQ;
-using NetMQ.Sockets;
 
 namespace TinCan.NET.Models;
 
@@ -36,7 +33,6 @@ public class Postbox
             if (recvResult != null)
             {
                 didAnything = true;
-                Console.WriteLine("RECEIVED");
                 // unpack data
                 var unpacked = MessagePackSerializer.Deserialize<dynamic>(recvResult.Span.ToArray());
                 // ensure correct formatting
@@ -71,9 +67,7 @@ public class Postbox
             if (_toSend.TryDequeue(out var sendMsg))
             {
                 didAnything = true;
-                Console.WriteLine("Postbox received message, sending...");
                 _sock.Send(sendMsg);
-                Console.WriteLine("Sent!");
             }
         }
         catch (Exception e)
@@ -83,7 +77,7 @@ public class Postbox
 
         if (!didAnything && !stopFlag.IsCancellationRequested)
         {
-            Thread.Sleep(10);
+            Thread.Yield();
         }
     }
 

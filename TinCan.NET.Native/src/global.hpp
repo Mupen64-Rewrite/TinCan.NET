@@ -36,7 +36,7 @@ namespace tc {
   extern std::optional<boost::process::child> g_process;
   
   // State objects
-  extern std::optional<std::span<CONTROL, 4>> g_control_states;
+  extern CONTROL* g_control_states;
   extern std::array<std::atomic_uint32_t, 4> g_input_states;
   
   void post_thread_loop(std::stop_token tok);

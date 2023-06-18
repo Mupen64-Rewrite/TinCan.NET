@@ -8,6 +8,7 @@
 #include "util/fs_helper.hpp"
 #include <boost/process.hpp>
 #include <boost/process/io.hpp>
+#include <latch>
 
 #define TC_IF_NOT_NULL(ptr) \
   if (ptr)                  \
@@ -52,11 +53,24 @@ PluginStartup(
     tc::setup_post_listeners();
     tc::g_post_thread.emplace(tc::post_thread_loop);
     
+    // Start the GUI
     tc::trace(M64MSG_VERBOSE, "Starting GUI");
-    // find path to desired executable
     auto exe_path =
       tc::get_own_path().parent_path() / "TinCan.NET" TC_EXECUTABLE_EXT;
     tc::g_process.emplace(exe_path.c_str(), boost::process::args({conn_ep}));
+    
+    // wait for the GUI to be ready
+    tc::trace(M64MSG_VERBOSE, "Waiting for connection...");
+    {
+      std::latch latch(1);
+      tc::g_postbox->listen("Ready", [&](const msgpack::object&) {
+        tc::g_postbox->unlisten("Ready");
+        latch.count_down();
+      });
+      latch.wait();
+    }
+    tc::trace(M64MSG_VERBOSE, "Setup complete");
+    
   }
   catch (const std::exception& exc) {
     fmt::print("Caught exception: {}" TC_NEWLINE, exc.what());
@@ -74,7 +88,7 @@ TC_EXPORT(m64p_error) PluginShutdown() {
   if (!tc::g_postbox.has_value())
     return M64ERR_NOT_INIT;
   
-  tc::g_control_states.reset();
+  tc::g_control_states = nullptr;
   
   tc::trace(M64MSG_VERBOSE, "Signaling shutdown");
   tc::g_postbox->enqueue("Shutdown"sv);
@@ -109,8 +123,9 @@ PluginGetVersion(
 }
 
 TC_EXPORT(int) RomOpen() {
-  return true;
   tc::g_postbox->enqueue("ShowWindows");
+  
+  return true;
 }
 
 TC_EXPORT(void) RomClosed() {
@@ -118,12 +133,17 @@ TC_EXPORT(void) RomClosed() {
 }
 
 TC_EXPORT(void) InitiateControllers(CONTROL_INFO info) {
-  tc::g_control_states.emplace(info.Controls, 4);
+  tc::g_control_states = info.Controls;
   tc::g_postbox->enqueue("RequestUpdateControls");
 }
 
 TC_EXPORT(void) GetKeys(int index, BUTTONS* keys) {
-  keys->Value = tc::g_input_states[index];
+  uint32_t value = tc::g_input_states[index];
+  keys->Value = value;
+  auto start = keys->START_BUTTON;
+  if (index == 0) {
+    tc::tracef(M64MSG_VERBOSE, "START: {}", (bool) start);
+  }
 }
 
 TC_EXPORT(void) ControllerCommand(int index, unsigned char* data) {}

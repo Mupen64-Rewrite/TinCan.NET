@@ -88,7 +88,7 @@ namespace tc {
       }
 
       if (!did_anything && !stop.stop_requested()) {
-        std::this_thread::sleep_for(10ms);
+        std::this_thread::yield();
       }
     }
 
