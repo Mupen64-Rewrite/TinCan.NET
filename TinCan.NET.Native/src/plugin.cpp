@@ -54,6 +54,10 @@ PluginStartup(
       tc::get_own_path().parent_path() / "TinCan.NET" TC_EXECUTABLE_EXT;
     tc::g_process.emplace(exe_path.c_str(), boost::process::args({conn_ep}));
   }
+  catch (const std::exception& exc) {
+    fmt::print("Caught exception: {}", exc.what());
+    return M64ERR_SYSTEM_FAIL;
+  }
   catch (...) {
     return M64ERR_SYSTEM_FAIL;
   }
