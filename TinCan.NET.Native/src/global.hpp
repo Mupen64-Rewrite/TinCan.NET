@@ -11,6 +11,7 @@
 #include "mupen64plus/m64p_plugin.h"
 #include "util/fs_helper.hpp"
 #include <boost/process.hpp>
+#include <zmq.hpp>
 #include <array>
 #include <atomic>
 #include <optional>
@@ -27,6 +28,7 @@ namespace tc {
   
   // IPC objects
   extern std::optional<tc::tempdir_handle> g_tempdir;
+  extern std::optional<zmq::context_t> g_zmq_ctx;
   extern std::optional<postbox> g_postbox;
   
   // Execution objects

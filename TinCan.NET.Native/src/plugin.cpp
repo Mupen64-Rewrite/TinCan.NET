@@ -16,8 +16,10 @@
 
 #ifdef _WIN32
   #define TC_EXECUTABLE_EXT ".exe"
+  #define TC_NEWLINE "\r\n"
 #else
   #define TC_EXECUTABLE_EXT
+  #define TC_NEWLINE "\n"
 #endif
 
 TC_EXPORT(m64p_error)
@@ -38,7 +40,8 @@ PluginStartup(
     auto sock_path = tc::g_tempdir->operator*() / "socket.sock";
     
     // init socket
-    tc::g_postbox.emplace(fmt::format("ipc://{}", sock_path.string()));
+    tc::g_zmq_ctx.emplace();
+    tc::g_postbox.emplace(*tc::g_zmq_ctx, fmt::format("ipc://{}", sock_path.string()));
     auto conn_ep = tc::g_postbox->endpoint();
     tc::tracef(M64MSG_VERBOSE, "Using endpoint {}", conn_ep);
     
@@ -55,7 +58,7 @@ PluginStartup(
     tc::g_process.emplace(exe_path.c_str(), boost::process::args({conn_ep}));
   }
   catch (const std::exception& exc) {
-    fmt::print("Caught exception: {}", exc.what());
+    fmt::print("Caught exception: {}" TC_NEWLINE, exc.what());
     return M64ERR_SYSTEM_FAIL;
   }
   catch (...) {
@@ -78,11 +81,13 @@ TC_EXPORT(m64p_error) PluginShutdown() {
     tc::g_process->join();
   
   tc::trace(M64MSG_VERBOSE, "Cleaning up");
-  tc::g_postbox.reset();
   
   tc::g_post_thread->request_stop();
   tc::g_post_thread->join();
   tc::g_post_thread.reset();
+
+  tc::g_postbox.reset();
+  tc::g_zmq_ctx.reset();
   
   tc::trace(M64MSG_VERBOSE, "Shutdown complete");
   return M64ERR_SUCCESS;

@@ -9,6 +9,7 @@ void* tc::g_log_context;
 void (*tc::g_log_callback)(void* context, int level, const char* str);
 
 std::optional<tc::tempdir_handle> tc::g_tempdir;
+std::optional<zmq::context_t> tc::g_zmq_ctx;
 std::optional<tc::postbox> tc::g_postbox;
 
 std::optional<std::jthread> tc::g_post_thread;

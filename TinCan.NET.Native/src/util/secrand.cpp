@@ -31,7 +31,7 @@ namespace tc {
 #include <bcrypt.h>
 namespace tc {
   secure_random_device::secure_random_device() : m_hnd(invalid_handle) {
-    switch (BCryptOpenAlgorithmProvider(&m_hnd, MS_PRIMITIVE_PROVIDER, nullptr, 0)) {
+    switch (BCryptOpenAlgorithmProvider(&m_hnd, BCRYPT_RNG_ALGORITHM, MS_PRIMITIVE_PROVIDER, 0)) {
     case STATUS_SUCCESS:
       break;
     case STATUS_NOT_FOUND:

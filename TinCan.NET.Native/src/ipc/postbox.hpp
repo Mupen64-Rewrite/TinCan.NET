@@ -19,21 +19,17 @@
 #include <zmq.hpp>
 
 namespace tc {
-  inline zmq::context_t& zmq_context() {
-    static zmq::context_t ctx;
-    return ctx;
-  }
-
   class postbox {
   public:
     using listener_type = tl::function_ref<void(const msgpack::object&)>;
 
-    postbox(const char* uri) : m_sock(zmq_context(), zmq::socket_type::pair) {
+    postbox(zmq::context_t& ctx, const char* uri) : m_sock(ctx, zmq::socket_type::pair) {
       m_sock.set(zmq::sockopt::sndtimeo, 50);
       m_sock.set(zmq::sockopt::rcvtimeo, 50);
       m_sock.bind(uri);
     }
-    postbox(const std::string& uri) : postbox(uri.c_str()) {}
+    postbox(zmq::context_t& ctx, const std::string& uri) :
+      postbox(ctx, uri.c_str()) {}
     
     postbox(postbox&&) = default;
     
