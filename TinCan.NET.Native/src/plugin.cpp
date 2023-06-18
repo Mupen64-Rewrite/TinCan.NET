@@ -40,18 +40,22 @@ PluginStartup(
     auto sock_path = tc::g_tempdir->operator*() / "socket.sock";
     
     // init socket
+    tc::trace(M64MSG_VERBOSE, "Initializing ZeroMQ");
     tc::g_zmq_ctx.emplace();
+    tc::trace(M64MSG_VERBOSE, "Creating socket");
     tc::g_postbox.emplace(*tc::g_zmq_ctx, fmt::format("ipc://{}", sock_path.string()));
     auto conn_ep = tc::g_postbox->endpoint();
     tc::tracef(M64MSG_VERBOSE, "Using endpoint {}", conn_ep);
     
     // prep handlers and start postbox
+    tc::trace(M64MSG_VERBOSE, "Initializing event loop");
     tc::g_postbox->listen("Log", [](const msgpack::object& obj) {
       auto args = obj.as<std::tuple<int, std::string>>();
       tc::trace((m64p_msg_level) std::get<0>(args), std::get<1>(args));
     });
     tc::g_post_thread.emplace(tc::post_thread_loop);
     
+    tc::trace(M64MSG_VERBOSE, "Starting GUI");
     // find path to desired executable
     auto exe_path =
       tc::get_own_path().parent_path() / "TinCan.NET" TC_EXECUTABLE_EXT;

@@ -18,6 +18,7 @@ public class Postbox
         _sock = new ZMQSocket(SocketType.Pair);
         _sock.SetOption(SocketOptionInt.SendTimeout, 50);
         _sock.SetOption(SocketOptionInt.ReceiveTimeout, 50);
+        _sock.SetOption(SocketOptionInt.ConnectTimeout, 100);
         _sock.Connect(uri);
 
         _toSend = new ConcurrentQueue<byte[]>();
