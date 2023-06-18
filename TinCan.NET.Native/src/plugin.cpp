@@ -52,7 +52,7 @@ PluginStartup(
     // find path to desired executable
     auto exe_path =
       tc::get_own_path().parent_path() / "TinCan.NET" TC_EXECUTABLE_EXT;
-    tc::g_process.emplace(boost::filesystem::path(exe_path), boost::process::args({conn_ep}));
+    tc::g_process.emplace(exe_path.c_str(), boost::process::args({conn_ep}));
   }
   catch (...) {
     return M64ERR_SYSTEM_FAIL;

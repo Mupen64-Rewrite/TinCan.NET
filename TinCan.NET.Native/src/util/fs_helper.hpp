@@ -2,6 +2,7 @@
 #define TC_UTIL_FS_HELPER_HPP
 
 #include <filesystem>
+#include <array>
 #include <span>
 #include "secrand.hpp"
 
