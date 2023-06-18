@@ -40,6 +40,7 @@ namespace tc {
   extern std::array<std::atomic_uint32_t, 4> g_input_states;
   
   void post_thread_loop(std::stop_token tok);
+  void setup_post_listeners();
   
   inline void trace(m64p_msg_level lvl, const char* str) {
     g_log_callback(g_log_context, lvl, str);

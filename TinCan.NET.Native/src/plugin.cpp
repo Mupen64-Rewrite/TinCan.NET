@@ -49,10 +49,7 @@ PluginStartup(
     
     // prep handlers and start postbox
     tc::trace(M64MSG_VERBOSE, "Initializing event loop");
-    tc::g_postbox->listen("Log", [](const msgpack::object& obj) {
-      auto args = obj.as<std::tuple<int, std::string>>();
-      tc::trace((m64p_msg_level) std::get<0>(args), std::get<1>(args));
-    });
+    tc::setup_post_listeners();
     tc::g_post_thread.emplace(tc::post_thread_loop);
     
     tc::trace(M64MSG_VERBOSE, "Starting GUI");
@@ -76,6 +73,8 @@ TC_EXPORT(m64p_error) PluginShutdown() {
   using namespace std::literals;
   if (!tc::g_postbox.has_value())
     return M64ERR_NOT_INIT;
+  
+  tc::g_control_states.reset();
   
   tc::trace(M64MSG_VERBOSE, "Signaling shutdown");
   tc::g_postbox->enqueue("Shutdown"sv);
@@ -111,15 +110,20 @@ PluginGetVersion(
 
 TC_EXPORT(int) RomOpen() {
   return true;
+  tc::g_postbox->enqueue("ShowWindows");
 }
 
 TC_EXPORT(void) RomClosed() {
+  tc::g_postbox->enqueue("HideWindows");
 }
 
-TC_EXPORT(void) InitiateControllers() {}
+TC_EXPORT(void) InitiateControllers(CONTROL_INFO info) {
+  tc::g_control_states.emplace(info.Controls, 4);
+  tc::g_postbox->enqueue("RequestUpdateControls");
+}
 
 TC_EXPORT(void) GetKeys(int index, BUTTONS* keys) {
-  keys->Value = 0;
+  keys->Value = tc::g_input_states[index];
 }
 
 TC_EXPORT(void) ControllerCommand(int index, unsigned char* data) {}

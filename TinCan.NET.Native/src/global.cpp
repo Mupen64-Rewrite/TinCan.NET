@@ -2,6 +2,9 @@
 #include <mupen64plus/m64p_types.h>
 #include "ipc/postbox.hpp"
 #include <boost/process.hpp>
+#include <bit>
+#include <cstdint>
+#include <cstring>
 #include <optional>
 
 m64p_dynlib_handle tc::g_core_handle;
@@ -17,6 +20,25 @@ std::optional<boost::process::child> tc::g_process;
 
 std::optional<std::span<CONTROL, 4>> tc::g_control_states;
 std::array<std::atomic_uint32_t, 4> tc::g_input_states { 0, 0, 0, 0 };
+
+static void do_log(const msgpack::object& obj) {
+  auto args = obj.as<std::tuple<int, std::string>>();
+  tc::trace((m64p_msg_level) std::get<0>(args), std::get<1>(args));
+}
+static void do_update_inputs(const msgpack::object& obj) {
+  auto args = obj.as<std::tuple<int, std::array<char, 4>>>();
+  tc::g_input_states[std::get<0>(args)] = std::bit_cast<uint32_t>(std::get<1>(args));
+}
+static void do_update_controls(const msgpack::object& obj) {
+  auto args = obj.as<std::tuple<int, std::array<char, sizeof(CONTROL)>>>();
+  memcpy(&(*tc::g_control_states)[std::get<0>(args)], &std::get<1>(args), sizeof(CONTROL));
+}
+
+void tc::setup_post_listeners() {
+  g_postbox->listen("Log", &do_log);
+  g_postbox->listen("UpdateInputs", &do_update_inputs);
+  g_postbox->listen("UpdateControls", &do_update_controls);
+}
 
 void tc::post_thread_loop(std::stop_token tok) {
   do {

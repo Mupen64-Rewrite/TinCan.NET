@@ -5,10 +5,13 @@
 #include "../util/string_hash.hpp"
 #include "safe_queue.hpp"
 
+#include <concepts>
 #include <iostream>
 #include <stdexcept>
 #include <stop_token>
+#include <string_view>
 #include <thread>
+#include <type_traits>
 #include <unordered_map>
 
 #include <fmt/core.h>
@@ -107,6 +110,10 @@ namespace tc {
     // Sets the listener for a particular event. Overrides any previously set
     // listeners. Do not use while the event loop is active.
     void listen(std::string_view event, const listener_type& listener) {
+      m_recv_handlers.emplace(event, listener);
+    }
+    
+    void listen(std::string_view event, listener_type&& listener) {
       m_recv_handlers.emplace(event, listener);
     }
 
