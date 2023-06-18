@@ -7,14 +7,17 @@
 #include <random>
 #include <system_error>
 
+#ifdef _WIN32
+
 #ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
+  #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
 #include <bcrypt.h>
 #undef min
 #undef max
 
+#endif
 namespace tc {
   class secure_random_device {
   public:
