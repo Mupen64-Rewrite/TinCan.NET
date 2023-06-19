@@ -14,4 +14,6 @@ public partial class MainWindow : Window
         this.AttachDevTools();
 #endif
     }
+
+    public MainWindowViewModel ViewModel => (DataContext as MainWindowViewModel)!;
 }

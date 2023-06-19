@@ -89,23 +89,41 @@ public partial class App : Application
                 var lt = Application.Current?.ApplicationLifetime;
                 if (lt is IClassicDesktopStyleApplicationLifetime ltDesktop)
                 {
-                    var vm = new MainWindowViewModel
-                    {
-                        Postbox = new WeakReference<Postbox>(_postbox!)
-                    };
+                    var vm = new MainWindowViewModel();
                     var win = new MainWindow
                     {
                         DataContext = vm,
                         CanResize = false
                     };
-                    
-                    
                     win.Hide();
                     ltDesktop.MainWindow = win;
                 }
             });
             
             _postbox!.Enqueue("UpdateControls", 0, true, 0, Control.PluginType.None, Control.ControllerType.Standard);
+        });
+        _postbox!.Listen("RequestUpdateInputs", (int index) =>
+        {
+            // no support for ports 1, 2, 3
+            if (index != 0)
+            {
+                _postbox!.Enqueue("UpdateInputs", index, 0);
+                return;
+            }
+            // query UI for port value
+            var value = Dispatcher.UIThread.Invoke(() =>
+            {
+                var lt = Application.Current?.ApplicationLifetime;
+                if (lt is not IClassicDesktopStyleApplicationLifetime ltDesktop)
+                    return (uint) 0;
+
+                var win = (MainWindow?) ltDesktop.MainWindow;
+                if (win == null)
+                    return (uint) 0;
+
+                return win.ViewModel.Value;
+            });
+            _postbox!.Enqueue("UpdateInputs", 0, value);
         });
         _postbox!.Listen("ShowWindows", () =>
         {

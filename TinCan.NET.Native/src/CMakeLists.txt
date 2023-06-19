@@ -26,6 +26,7 @@ add_library(tincan-bridge MODULE
   "util/fs_helper.cpp"
   "util/fs_helper.hpp"
   "util/bin_cast.hpp"
+  "util/gate.hpp"
   "util/string_hash.hpp"
   "util/secrand.cpp"
   "util/secrand.hpp"

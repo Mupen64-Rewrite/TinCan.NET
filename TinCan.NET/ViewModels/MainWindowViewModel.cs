@@ -13,17 +13,11 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private sbyte _joyY;
     private Buttons.Mask _buttonMask;
 
-    protected override void OnPropertyChanged(PropertyChangedEventArgs e)
-    {
-        base.OnPropertyChanged(e);
-        uint buttonValue = (uint) _buttonMask | ((uint) JoyX << 16) | ((uint) JoyY << 24);
-        if (Postbox.TryGetTarget(out var postbox))
-        {
-            postbox.Enqueue("UpdateInputs", 0, buttonValue);
-        }
-    }
+    private static readonly TimeSpan JoyBufferTimeout = TimeSpan.FromMilliseconds(10);
     
-    public WeakReference<Postbox> Postbox { private get; init; }
+    private DateTime _lastJoyUpdate = DateTime.MinValue;
+
+    public uint Value => (uint) _buttonMask | ((uint) (byte) JoyX << 16) | ((uint) (byte) JoyY << 24);
 
     private void SetButtonMask(Buttons.Mask bit, bool value, [CallerMemberName] string? callerMemberName = null)
     {

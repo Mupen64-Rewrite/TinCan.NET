@@ -9,6 +9,7 @@
 #include <boost/process.hpp>
 #include <boost/process/io.hpp>
 #include <latch>
+#include <tuple>
 
 #define TC_IF_NOT_NULL(ptr) \
   if (ptr)                  \
@@ -61,14 +62,7 @@ PluginStartup(
     
     // wait for the GUI to be ready
     tc::trace(M64MSG_VERBOSE, "Waiting for connection...");
-    {
-      std::latch latch(1);
-      tc::g_postbox->listen("Ready", [&](const msgpack::object&) {
-        tc::g_postbox->unlisten("Ready");
-        latch.count_down();
-      });
-      latch.wait();
-    }
+    tc::g_postbox->wait("Ready").await();
     tc::trace(M64MSG_VERBOSE, "Setup complete");
     
   }
@@ -138,12 +132,22 @@ TC_EXPORT(void) InitiateControllers(CONTROL_INFO info) {
 }
 
 TC_EXPORT(void) GetKeys(int index, BUTTONS* keys) {
-  uint32_t value = tc::g_input_states[index];
-  keys->Value = value;
-  auto start = keys->START_BUTTON;
-  if (index == 0) {
-    tc::tracef(M64MSG_VERBOSE, "START: {}", (bool) start);
+  uint32_t result;
+  // await result
+  {
+    auto wait_handle = tc::g_postbox->wait("UpdateInputs", [&](const msgpack::object& obj) -> bool {
+      auto args = obj.as<std::tuple<int, uint32_t>>();
+      if (std::get<0>(args) != index)
+        return false;
+      
+      result = std::get<1>(args);
+      return true;
+    });
+    tc::g_postbox->enqueue("RequestUpdateInputs", index);
+    wait_handle.await();
   }
+  
+  keys->Value = result;
 }
 
 TC_EXPORT(void) ControllerCommand(int index, unsigned char* data) {}

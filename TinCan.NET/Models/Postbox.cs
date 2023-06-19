@@ -19,7 +19,7 @@ public class Postbox
         _sock.Connect(uri);
 
         _toSend = new ConcurrentQueue<byte[]>();
-        _recvHandlers = new Dictionary<string, Action>();
+        _recvHandlers = new Dictionary<string, Delegate>();
     }
 
     public void EventLoop(in CancellationToken stopFlag)
@@ -45,7 +45,6 @@ public class Postbox
 
                 string key = unpacked[0];
                 object[] args = unpacked[1];
-                Console.WriteLine($"Received event \"{key}\"");
                 // find destination and invoke it
                 if (_recvHandlers.TryGetValue(key, out var recvHandler))
                 {
@@ -88,7 +87,7 @@ public class Postbox
         _toSend.Enqueue(dataBin);
     }
 
-    public void Listen(string @event, Action listener)
+    public void Listen(string @event, Delegate listener)
     {
         _recvHandlers[@event] = listener;
     }
@@ -104,5 +103,5 @@ public class Postbox
 
     private ZMQSocket _sock;
     private ConcurrentQueue<byte[]> _toSend;
-    private Dictionary<string, Action> _recvHandlers;
+    private Dictionary<string, Delegate> _recvHandlers;
 }
