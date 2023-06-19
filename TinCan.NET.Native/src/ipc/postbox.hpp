@@ -111,6 +111,7 @@ namespace tc {
 
           // Find destination
           auto dest = data->via.array.ptr[0].as<std::string_view>();
+          fmt::print("Received \"{}\"\r\n", dest);
           // trigger awaiters
           for (auto& awaiter : m_awaiters) {
             if (awaiter.m_event != dest)

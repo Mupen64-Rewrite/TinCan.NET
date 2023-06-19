@@ -54,6 +54,9 @@ PluginStartup(
     tc::setup_post_listeners();
     tc::g_post_thread.emplace(tc::post_thread_loop);
     
+    // prep wait handle
+    auto wait_handle = tc::g_postbox->wait("Ready");
+
     // Start the GUI
     tc::trace(M64MSG_VERBOSE, "Starting GUI");
     auto exe_path =
@@ -62,7 +65,7 @@ PluginStartup(
     
     // wait for the GUI to be ready
     tc::trace(M64MSG_VERBOSE, "Waiting for connection...");
-    tc::g_postbox->wait("Ready").await();
+    wait_handle.await();
     tc::trace(M64MSG_VERBOSE, "Setup complete");
     
   }
