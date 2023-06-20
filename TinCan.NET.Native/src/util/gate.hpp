@@ -5,7 +5,10 @@
 namespace tc {
   class gate {
   public:
-    gate(bool unlocked = false) : m_flag(unlocked) {}
+    gate(bool unlocked = false) : m_flag() {
+      if (unlocked)
+        m_flag.test_and_set();
+    }
     
     gate(const gate&) = delete;
     gate& operator=(const gate&) = delete;
@@ -18,6 +21,7 @@ namespace tc {
     }
   
     void unlock() {
+      fmt::print("OPEN THE GATES\n");
       if (!m_flag.test_and_set())
         m_flag.notify_all();
     }
