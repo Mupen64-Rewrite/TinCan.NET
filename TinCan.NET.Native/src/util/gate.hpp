@@ -21,7 +21,6 @@ namespace tc {
     }
   
     void unlock() {
-      fmt::print("OPEN THE GATES\n");
       if (!m_flag.test_and_set())
         m_flag.notify_all();
     }

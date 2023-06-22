@@ -139,14 +139,14 @@ TC_EXPORT(void) GetKeys(int index, BUTTONS* keys) {
   // await result
   {
     auto wait_handle = tc::g_postbox->wait("UpdateInputs", [&](const msgpack::object& obj) -> bool {
-      auto args = obj.as<std::tuple<int, uint32_t>>();
-      if (std::get<0>(args) != index)
+      std::pair<int, uint32_t> args = obj.as<std::pair<int, uint32_t>>();
+      if (args.first != index)
         return false;
       
-      result = std::get<1>(args);
+      result = args.second;
       return true;
     });
-    tc::g_postbox->enqueue("RequestUpdateInputs", index);
+    tc::g_postbox->enqueue("RequestUpdateInputs", index); 
     wait_handle.await();
   }
   

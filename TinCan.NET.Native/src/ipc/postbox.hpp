@@ -11,7 +11,7 @@
 #include <iostream>
 #include <latch>
 #include <list>
-#include <mutex>
+#include <shared_mutex>
 #include <stdexcept>
 #include <stop_token>
 #include <string_view>
@@ -51,7 +51,7 @@ namespace tc {
     tc::safe_queue<zmq::message_t> m_to_send;
     tc::string_map<listener_type> m_listeners;
     std::list<internal_awaiter> m_awaiters;
-    std::mutex m_await_mutex;
+    std::shared_mutex m_await_mutex;
 
   public:
     class await_handle {
@@ -65,7 +65,24 @@ namespace tc {
         m_parent(self), m_it(it) {}
 
     public:
-      ~await_handle() { remove(); }
+      ~await_handle() { 
+        if (m_parent)
+          remove(); 
+      }
+      
+      await_handle(const await_handle&) = delete;
+      await_handle& operator=(const await_handle&) = delete;
+      
+      await_handle(await_handle&& rhs) : m_parent(rhs.m_parent), m_it(rhs.m_it) {
+        rhs.m_parent = nullptr;
+      }
+      
+      await_handle& operator=(await_handle&& rhs) {
+        m_parent = rhs.m_parent;
+        m_it = rhs.m_it;
+        rhs.m_parent = nullptr;
+        return *this;
+      }
 
       void remove() noexcept {
         std::scoped_lock lock(m_parent->m_await_mutex);
@@ -111,18 +128,23 @@ namespace tc {
 
           // Find destination
           auto dest = data->via.array.ptr[0].as<std::string_view>();
-          fmt::print("Received \"{}\"\r\n", dest);
+          auto& args_obj = data->via.array.ptr[1];
           // trigger awaiters
-          for (auto& awaiter : m_awaiters) {
-            if (awaiter.m_event != dest)
-              continue;
-            if (!awaiter.m_acceptor(data->via.array.ptr[1]))
-              continue;
-            awaiter.m_gate.unlock();
+          {
+            std::shared_lock _lock_(m_await_mutex);
+            if (!m_awaiters.empty()) {
+              for (auto& awaiter : m_awaiters) {
+                if (awaiter.m_event != dest)
+                  continue;
+                if (!awaiter.m_acceptor(args_obj))
+                  continue;
+                awaiter.m_gate.unlock();
+              }
+            }
           }
           // trigger listener
           if (auto it = m_listeners.find(dest); it != m_listeners.end()) {
-            it->second(data->via.array.ptr[1]);
+            it->second(args_obj);
           }
         }
       }
