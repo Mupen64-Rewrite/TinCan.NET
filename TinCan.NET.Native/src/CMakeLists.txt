@@ -19,6 +19,7 @@ endmacro()
 
 add_library(tincan-bridge MODULE
   "ipc/postbox.hpp"
+  "ipc/postbox.cpp"
   "ipc/safe_queue.hpp"
   
   "tl/function_ref.hpp"

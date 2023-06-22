@@ -7,6 +7,8 @@ project(TinCan.NET.Native
 
 if (NOT MSVC)
   string(REPLACE "-O2" "-O3" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+  string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=thread")
+  string(APPEND CMAKE_MODULE_LINKER_FLAGS_DEBUG " -fsanitize=thread")
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")

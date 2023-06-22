@@ -25,10 +25,6 @@ static void do_log(const msgpack::object& obj) {
   auto args = obj.as<std::tuple<int, std::string>>();
   tc::trace((m64p_msg_level) std::get<0>(args), std::get<1>(args));
 }
-static void do_update_inputs(const msgpack::object& obj) {
-  auto args = obj.as<std::tuple<int, uint32_t>>();
-  tc::g_input_states[std::get<0>(args)] = std::get<1>(args);
-}
 static void do_update_controls(const msgpack::object& obj) {
   auto args = obj.as<std::tuple<int, bool, int, int, int>>();
   auto& state = tc::g_control_states[std::get<0>(args)];
@@ -40,7 +36,6 @@ static void do_update_controls(const msgpack::object& obj) {
 
 void tc::setup_post_listeners() {
   g_postbox->listen("Log", do_log);
-  g_postbox->listen("UpdateInputs", do_update_inputs);
   g_postbox->listen("UpdateControls", do_update_controls);
 }
 
