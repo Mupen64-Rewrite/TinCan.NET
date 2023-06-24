@@ -138,6 +138,7 @@ namespace tc {
     // Returns a temporary handle to await an event. The acceptor function
     // shall return true if it is done waiting and false if it needs to wait
     // more. Ensure that this handle does not outlive the postbox object.
+    // Also note that the acceptor function must outlive the await_handle.
     await_handle wait(
       std::string_view event,
       const acceptor_type& acceptor = acceptor_type(accept_always)) {
@@ -148,6 +149,15 @@ namespace tc {
       it--;
       
       return await_handle(this, it);
+    }
+    
+    // Encapsulates the post-and-wait idiom for sending RPC-style calls
+    // to the receiving postbox.
+    template <std::predicate<const msgpack::object&> F, class... Args>
+    void post_and_wait(std::string_view wait_event, F&& acceptor, std::string_view send_event, Args&&... send_params) {
+      auto wait_handle = wait(wait_event, acceptor);
+      enqueue(send_event, std::forward<Args>(send_params)...);
+      wait_handle.await();
     }
 
     // Unset the listener for a particular event if it is already set. Do not

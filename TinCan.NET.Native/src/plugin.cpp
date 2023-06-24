@@ -136,21 +136,14 @@ TC_EXPORT(void) InitiateControllers(CONTROL_INFO info) {
 
 TC_EXPORT(void) GetKeys(int index, BUTTONS* keys) {
   using namespace std::literals;
-  // Shoutouts to @CasualPokePlayer!
-  const auto wait_fn = [=](const msgpack::object& obj) -> bool {
+  tc::g_postbox->post_and_wait("UpdateInputs", [=](const msgpack::object& obj) -> bool {
     auto [rcv_index, rcv_value] = obj.as<std::tuple<int, uint32_t>>();
-    tc::tracef(M64MSG_VERBOSE, "index = {}", index);
     if (rcv_index != index)
       return false;
     
     keys->Value = rcv_value;
     return true;
-  };
-  tc::tracef(M64MSG_VERBOSE, "index = {}", index);
-  auto wait_handle = tc::g_postbox->wait(
-    "UpdateInputs"sv, wait_fn);
-  tc::g_postbox->enqueue("RequestUpdateInputs", index);
-  wait_handle.await();
+  }, "RequestUpdateInputs", index);
 }
 
 TC_EXPORT(void) ControllerCommand(int index, unsigned char* data) {}
