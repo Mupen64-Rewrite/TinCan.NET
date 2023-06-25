@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.22.1)
 project(TinCan.NET.Native
   VERSION 0.1.0
   DESCRIPTION "Native bridge plugin for TinCan.NET"
