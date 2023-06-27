@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 
 namespace TinCan.NET.Helpers;
@@ -20,8 +21,25 @@ public static class MathHelpers
         return x * (1.0 - t) + y * t;
     }
 
-    public static Point Lerp(Point A, Point B, double t)
+    public static Point Lerp(Point a, Point b, double t)
     {
-        return new Point(Lerp(A.X, B.X, t), Lerp(A.Y, B.Y, t));
+        return new Point(Lerp(a.X, b.X, t), Lerp(a.Y, b.Y, t));
+    }
+
+    public static double PerpDot(Point a, Point b)
+    {
+        // same as this: a.X * b.Y - a.Y * b.X, but faster
+        return Math.FusedMultiplyAdd(-a.Y, b.X, a.X * b.Y);
+    }
+
+    /// <summary>
+    /// Intersects a line from (0, 0)
+    /// </summary>
+    /// <param name="p"></param>
+    /// <param name="n"></param>
+    /// <returns></returns>
+    public static Point IntersectVectorToHorizontal(Point p, double n)
+    {
+        return new Point(n * p.X / p.Y, n);
     }
 }

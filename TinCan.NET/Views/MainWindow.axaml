@@ -6,7 +6,7 @@
         xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
         xmlns:viewModels="clr-namespace:TinCan.NET.ViewModels"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
-        Width="300" Height="470"
+        Width="330" Height="470"
         x:Class="TinCan.NET.Views.MainWindow"
         x:DataType="viewModels:MainWindowViewModel"
         x:CompileBindings="True"
@@ -14,11 +14,11 @@
     <StackPanel>
         <Expander HorizontalAlignment="Stretch" ExpandDirection="Down" Header="Joystick" IsExpanded="True">
             <Expander.Styles>
-                <Style Selector="StackPanel > :is(Layoutable)">
+                <Style Selector="Label">
+                    <Setter Property="HorizontalAlignment" Value="Center"/>
                     <Setter Property="VerticalAlignment" Value="Center"/>
-                </Style>
-                <Style Selector="StackPanel">
-                    <Setter Property="Margin" Value="5,0,5,0"/>
+                    <Setter Property="MinWidth" Value="30"/>
+                    <Setter Property="Margin" Value="10"/>
                 </Style>
                 <Style Selector="NumericUpDown">
                     <Setter Property="Minimum" Value="-128"/>
@@ -26,20 +26,17 @@
                     <Setter Property="FormatString" Value="{}{0:F0}"/>
                     <Setter Property="ClipValueToMinMax" Value="True"/>
                     <Setter Property="MinWidth" Value="100"/>
+                    <Setter Property="VerticalAlignment" Value="Center"/>
                 </Style>
             </Expander.Styles>
-            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*">
+            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,Auto,*">
                 <Viewbox Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Stretch="Uniform">
                     <controls:Joystick JoyX="{Binding JoyX}" JoyY="{Binding JoyY}" MinWidth="128" MinHeight="128"/>
                 </Viewbox>
-                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
-                    <Label Content="X" />
-                    <NumericUpDown Value="{Binding JoyX}" Minimum="-128" Maximum="127"/>
-                </StackPanel>
-                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
-                    <Label Content="Y" />
-                    <NumericUpDown Value="{Binding JoyY}" Minimum="-128" Maximum="127"/>
-                </StackPanel>
+                <Label Grid.Row="0" Grid.Column="1" Content="X" />
+                <NumericUpDown Grid.Row="0" Grid.Column="2" Value="{Binding JoyX}" Minimum="-128" Maximum="127"/>
+                <Label Grid.Row="1" Grid.Column="1" Content="Y" />
+                <NumericUpDown Grid.Row="1" Grid.Column="2" Value="{Binding JoyY}" Minimum="-128" Maximum="127"/>
             </Grid>
         </Expander>
         <Expander HorizontalAlignment="Stretch" ExpandDirection="Down" Header="Buttons" IsExpanded="True">
