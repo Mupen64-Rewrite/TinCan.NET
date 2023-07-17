@@ -16,4 +16,10 @@ public partial class MainWindow : Window
     }
 
     public MainWindowViewModel ViewModel => (DataContext as MainWindowViewModel)!;
+
+    private void Window_OnClosing(object? sender, WindowClosingEventArgs e)
+    {
+        if (!e.IsProgrammatic)
+            e.Cancel = true;
+    }
 }
