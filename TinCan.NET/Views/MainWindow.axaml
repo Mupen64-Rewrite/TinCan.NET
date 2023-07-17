@@ -6,6 +6,7 @@
         xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
         xmlns:viewModels="clr-namespace:TinCan.NET.ViewModels"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+        Width="400"
         CanResize="False"
         SizeToContent="Height"
         Closing="Window_OnClosing"

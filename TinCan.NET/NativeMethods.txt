@@ -1,1 +1,2 @@
-Psapi.*
+GetCurrentProcess
+NTSTATUS

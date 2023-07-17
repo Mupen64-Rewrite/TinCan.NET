@@ -9,8 +9,8 @@ namespace TinCan.NET.Models;
 /// </summary>
 public partial class SuicideThread
 {
-    private static partial bool Check_Win32();
-    private static partial bool Check_Linux();
+    private static unsafe partial bool Check_Win32();
+    private static unsafe partial bool Check_Linux();
 
     private static bool Check()
     {
@@ -26,9 +26,10 @@ public partial class SuicideThread
 
         throw new PlatformNotSupportedException("No die for you");
     }
-    public static void Run()
+    public static void Run(object? _token)
     {
-        while (true)
+        CancellationToken token = (CancellationToken) _token!;
+        while (!token.IsCancellationRequested)
         {
             if (!Check())
                 Process.GetCurrentProcess().Kill();
