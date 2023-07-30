@@ -110,6 +110,10 @@ public class Joystick : Avalonia.Controls.Control
 
         var relX = relPos.X * 128 / relXDist;
         var relY = relPos.Y * -128 / relYDist;
+        if (relX is > -8 and < 8)
+            relX = 0;
+        if (relY is > -8 and < 8)
+            relY = 0;
         JoyX = (sbyte) relX;
         JoyY = (sbyte) relY;
     }
