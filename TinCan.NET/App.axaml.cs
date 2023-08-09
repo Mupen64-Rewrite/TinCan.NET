@@ -169,7 +169,7 @@ public partial class App : Application
     }
 
 
-    private Postbox? _postbox;
+    internal Postbox? _postbox;
     private CancellationTokenSource? _stopSource;
     private Thread? _postboxLoop;
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TinCan.NET.Helpers;
 using TinCan.NET.Models;
@@ -108,5 +110,23 @@ public partial class MainWindowViewModel : ObservableObject
     {
         get => (_buttonMask & Buttons.Mask.R) != 0;
         set => SetButtonMask(Buttons.Mask.R, value);
+    }
+
+    public async Task<bool> PingHost()
+    {
+        App app = (App) Application.Current!;
+        if (app._postbox == null)
+            return false;
+        using var handle = app._postbox.Wait("ClientPingReply");
+        app._postbox.Enqueue("ClientPing");
+        try
+        {
+            await handle.Completion.WaitAsync(TimeSpan.FromMilliseconds(500));
+            return true;
+        }
+        catch (TimeoutException)
+        {
+            return false;
+        }
     }
 }

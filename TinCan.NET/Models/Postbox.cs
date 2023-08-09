@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using CSZeroMQ;
 using CSZeroMQ.Constants;
 using MessagePack;
@@ -10,6 +11,50 @@ namespace TinCan.NET.Models;
 
 public class Postbox
 {
+    internal struct InternalAwaiter
+    {
+        public readonly string Event;
+        public readonly Func<object[], bool>? Acceptor;
+        public readonly TaskCompletionSource Notification;
+
+        public InternalAwaiter(string @event, Func<object[], bool>? acceptor)
+        {
+            Event = @event;
+            Acceptor = acceptor;
+            Notification = new TaskCompletionSource();
+        }
+    }
+
+    public class AwaitHandle : IDisposable
+    {
+        private Postbox _parent;
+        private LinkedListNode<InternalAwaiter> _pointer;
+        public Task Completion => _pointer.ValueRef.Notification.Task;
+
+        internal AwaitHandle(Postbox parent, LinkedListNode<InternalAwaiter> pointer)
+        {
+            _parent = parent;
+            _pointer = pointer;
+        }
+
+        public void Dispose()
+        {
+            lock (_parent._awaiters)
+            {
+                _parent._awaiters.Remove(_pointer);
+            }
+            GC.SuppressFinalize(this);
+        }
+
+        ~AwaitHandle()
+        {
+            lock (_parent._awaiters)
+            {
+                _parent._awaiters.Remove(_pointer);
+            }
+        }
+    }
+    
     public Postbox(string uri)
     {
         _sock = new ZMQSocket(SocketType.Pair);
@@ -20,6 +65,7 @@ public class Postbox
 
         _toSend = new ConcurrentQueue<byte[]>();
         _recvHandlers = new Dictionary<string, Delegate>();
+        _awaiters = new LinkedList<InternalAwaiter>();
     }
 
     public void EventLoop(in CancellationToken stopFlag)
@@ -45,6 +91,18 @@ public class Postbox
 
                 string key = unpacked[0];
                 object[] args = unpacked[1];
+                // trigger awaiters
+                lock (_awaiters)
+                {
+                    foreach (var awaiter in _awaiters)
+                    {
+                        if (awaiter.Event != key)
+                            continue;
+                        if (!awaiter.Acceptor?.Invoke(args) ?? true)
+                            continue;
+                        awaiter.Notification.SetResult();
+                    }
+                }
                 // find destination and invoke it
                 if (_recvHandlers.TryGetValue(key, out var recvHandler))
                 {
@@ -97,6 +155,23 @@ public class Postbox
         _recvHandlers.Remove(@event);
     }
 
+    public AwaitHandle Wait(string @event, Func<object[], bool>? acceptor = null)
+    {
+        lock (_awaiters)
+        {
+            var node = _awaiters.AddLast(new InternalAwaiter(@event, acceptor));
+            return new AwaitHandle(this, node);
+        }
+    }
+
+    public void PostAndWait(string waitEvent, Func<object[], bool>? acceptor, string sendEvent,
+        params object[] sendParams)
+    {
+        using var handle = Wait(waitEvent, acceptor);
+        Enqueue(sendEvent, sendParams);
+        handle.Completion.Wait();
+    }
+
     internal ZMQSocket Socket => _sock;
 
     public event Action<string, object[]> FallbackHandler = (evt, arg) => {};
@@ -104,4 +179,5 @@ public class Postbox
     private ZMQSocket _sock;
     private ConcurrentQueue<byte[]> _toSend;
     private Dictionary<string, Delegate> _recvHandlers;
+    private LinkedList<InternalAwaiter> _awaiters;
 }

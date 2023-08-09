@@ -33,10 +33,14 @@ static void do_update_controls(const msgpack::object& obj) {
   state.Plugin = std::get<3>(args);
   state.Type = std::get<4>(args);
 }
+static void do_client_ping(const msgpack::object& obj) {
+  tc::g_postbox->enqueue("ClientPingReply");
+}
 
 void tc::setup_post_listeners() {
   g_postbox->listen("Log", do_log);
   g_postbox->listen("UpdateControls", do_update_controls);
+  g_postbox->listen("ClientPing", do_client_ping);
 }
 
 void tc::post_thread_loop(std::stop_token tok) {
