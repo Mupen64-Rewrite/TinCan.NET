@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -21,7 +23,10 @@ public partial class MainWindow : Window
     private async void Window_OnClosing(object? sender, WindowClosingEventArgs e)
     {
         // this attempts to ping the host
-        if (!e.IsProgrammatic && await ((App)Application.Current!).PingHost())
-            e.Cancel = true;
+        if (e.IsProgrammatic) 
+            return;
+        e.Cancel = true;
+        if (!await ((App) Application.Current!).PingHost())
+            Close();
     }
 }

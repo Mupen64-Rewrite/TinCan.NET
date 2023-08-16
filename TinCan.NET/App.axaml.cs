@@ -28,7 +28,7 @@ public partial class App : Application
         _postbox.Enqueue("ClientPing");
         try
         {
-            await handle.Completion.WaitAsync(TimeSpan.FromMilliseconds(500));
+            await handle.Completion.WaitAsync(TimeSpan.FromSeconds(3));
             return true;
         }
         catch (TimeoutException)
@@ -51,7 +51,7 @@ public partial class App : Application
             case IClassicDesktopStyleApplicationLifetime ltDesktop:
             {
 
-                if (ltDesktop.Args is {Length: 1})
+                if (ltDesktop.Args is {Length: >= 1})
                 {
                     _stopSource = new CancellationTokenSource();
                     _postbox = new Postbox(ltDesktop.Args[0]);

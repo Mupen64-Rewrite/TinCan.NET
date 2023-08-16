@@ -39,6 +39,7 @@ public class Postbox
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
             lock (_parent._awaiters)
             {
                 _parent._awaiters.Remove(_pointer);
@@ -91,7 +92,6 @@ public class Postbox
                 string key = unpacked[0];
                 object[] args = unpacked[1];
                 
-                Console.WriteLine($"Received {key}");
                 // trigger awaiters
                 lock (_awaiters)
                 {
@@ -99,8 +99,10 @@ public class Postbox
                     {
                         if (awaiter.Event != key)
                             continue;
-                        if (!awaiter.Acceptor?.Invoke(args) ?? true)
+                        Console.WriteLine($"found reply: {key}");
+                        if (!(awaiter.Acceptor?.Invoke(args) ?? true))
                             continue;
+                        Console.WriteLine($"reply accepted: {key}");
                         awaiter.Notification.SetResult();
                     }
                 }
