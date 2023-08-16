@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -19,6 +20,23 @@ public partial class App : Application
         AvaloniaXamlLoader.Load(this);
     }
 
+    public async Task<bool> PingHost()
+    {
+        if (_postbox == null)
+            return false;
+        using var handle = _postbox.Wait("ClientPingReply");
+        _postbox.Enqueue("ClientPing");
+        try
+        {
+            await handle.Completion.WaitAsync(TimeSpan.FromMilliseconds(500));
+            return true;
+        }
+        catch (TimeoutException)
+        {
+            return false;
+        }
+    }
+    
     public override void OnFrameworkInitializationCompleted()
     {
         
@@ -122,6 +140,8 @@ public partial class App : Application
                 if (win == null)
                     return (uint) 0;
 
+                win.ViewModel.OnUpdate();
+                
                 return win.ViewModel.Value;
             });
             _postbox!.Enqueue("UpdateInputs", 0, value);
@@ -169,7 +189,7 @@ public partial class App : Application
     }
 
 
-    internal Postbox? _postbox;
+    private Postbox? _postbox;
     private CancellationTokenSource? _stopSource;
     private Thread? _postboxLoop;
 }

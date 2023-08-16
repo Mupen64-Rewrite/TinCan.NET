@@ -17,10 +17,11 @@ public partial class MainWindow : Window
 
     public MainWindowViewModel ViewModel => (DataContext as MainWindowViewModel)!;
 
+
     private async void Window_OnClosing(object? sender, WindowClosingEventArgs e)
     {
         // this attempts to ping the host
-        if (!e.IsProgrammatic && await ViewModel.PingHost())
+        if (!e.IsProgrammatic && await ((App)Application.Current!).PingHost())
             e.Cancel = true;
     }
 }

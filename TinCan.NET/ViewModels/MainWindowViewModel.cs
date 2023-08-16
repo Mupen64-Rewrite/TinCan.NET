@@ -1,11 +1,8 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using TinCan.NET.Helpers;
-using TinCan.NET.Models;
 
 namespace TinCan.NET.ViewModels;
 
@@ -13,13 +10,37 @@ public partial class MainWindowViewModel : ObservableObject
 {
     [ObservableProperty] private sbyte _joyX;
     [ObservableProperty] private sbyte _joyY;
+
     private Buttons.Mask _buttonMask;
 
-    private static readonly TimeSpan JoyBufferTimeout = TimeSpan.FromMilliseconds(10);
-    
-    private DateTime _lastJoyUpdate = DateTime.MinValue;
+    // a mask of buttons which currently have rapidfire enabled 
+    private Buttons.Mask _rapidFireMask;
 
-    public uint Value => (uint) _buttonMask | ((uint) (byte) JoyX << 16) | ((uint) (byte) JoyY << 24);
+    private static readonly TimeSpan JoyBufferTimeout = TimeSpan.FromMilliseconds(10);
+
+    private DateTime _lastJoyUpdate = DateTime.MinValue;
+    private int _updates;
+
+    public void OnUpdate()
+    {
+        _updates++;
+    }
+
+    public uint Value
+    {
+        get
+        {
+            var secondMask = _updates % 2 == 0 ? 0 : _rapidFireMask;
+            var value = (uint)(_buttonMask | secondMask) | ((uint)(byte)JoyX << 16) | ((uint)(byte)JoyY << 24);
+            return value;
+        }
+    }
+
+    [RelayCommand]
+    private void ToggleRapidFire(Buttons.Mask bit)
+    {
+        _rapidFireMask = (_rapidFireMask & ~bit) | (!_rapidFireMask.HasFlag(bit) ? bit : 0);
+    }
 
     private void SetButtonMask(Buttons.Mask bit, bool value, [CallerMemberName] string? callerMemberName = null)
     {
@@ -110,23 +131,5 @@ public partial class MainWindowViewModel : ObservableObject
     {
         get => (_buttonMask & Buttons.Mask.R) != 0;
         set => SetButtonMask(Buttons.Mask.R, value);
-    }
-
-    public async Task<bool> PingHost()
-    {
-        App app = (App) Application.Current!;
-        if (app._postbox == null)
-            return false;
-        using var handle = app._postbox.Wait("ClientPingReply");
-        app._postbox.Enqueue("ClientPing");
-        try
-        {
-            await handle.Completion.WaitAsync(TimeSpan.FromMilliseconds(500));
-            return true;
-        }
-        catch (TimeoutException)
-        {
-            return false;
-        }
     }
 }
