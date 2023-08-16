@@ -62,7 +62,7 @@ PluginStartup(
     tc::trace(M64MSG_VERBOSE, "Starting GUI");
     auto exe_path =
       tc::get_own_path().parent_path() / "TinCan.NET" TC_EXECUTABLE_EXT;
-    tc::g_process.emplace(exe_path.c_str(), boost::process::args({conn_ep}));
+    tc::g_process.emplace(exe_path.string(), conn_ep, fmt::format("{:8X}", tc::g_main_win_handle));
 
     // wait for the GUI to be ready
     tc::trace(M64MSG_VERBOSE, "Waiting for connection...");

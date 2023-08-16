@@ -11,6 +11,8 @@ m64p_dynlib_handle tc::g_core_handle;
 void* tc::g_log_context;
 void (*tc::g_log_callback)(void* context, int level, const char* str);
 
+intptr_t tc::g_main_win_handle;
+
 std::optional<tc::tempdir_handle> tc::g_tempdir;
 std::optional<zmq::context_t> tc::g_zmq_ctx;
 std::optional<tc::postbox> tc::g_postbox;

@@ -25,6 +25,9 @@ namespace tc {
   extern m64p_dynlib_handle g_core_handle;
   extern void* g_log_context;
   extern void (*g_log_callback)(void* context, int level, const char* str);
+
+  // Frontend handles
+  extern intptr_t g_main_win_handle;
   
   // IPC objects
   extern std::optional<tc::tempdir_handle> g_tempdir;

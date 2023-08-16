@@ -25,7 +25,7 @@ public class Postbox
         }
     }
 
-    public class AwaitHandle : IDisposable
+    public sealed class AwaitHandle : IDisposable
     {
         private Postbox _parent;
         private LinkedListNode<InternalAwaiter> _pointer;
@@ -43,7 +43,6 @@ public class Postbox
             {
                 _parent._awaiters.Remove(_pointer);
             }
-            GC.SuppressFinalize(this);
         }
 
         ~AwaitHandle()
@@ -91,6 +90,8 @@ public class Postbox
 
                 string key = unpacked[0];
                 object[] args = unpacked[1];
+                
+                Console.WriteLine($"Received {key}");
                 // trigger awaiters
                 lock (_awaiters)
                 {
