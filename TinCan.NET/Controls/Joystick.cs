@@ -13,8 +13,9 @@ namespace TinCan.NET.Controls;
 
 public class Joystick : Avalonia.Controls.Control
 {
-    private static readonly IPen BlackPen = new ImmutablePen(Colors.Black.ToUInt32(), 1.0);
-    private static readonly IPen RedPen = new ImmutablePen(Colors.Red.ToUInt32(), 3.0);
+    private static readonly IPen OutlinePen = new ImmutablePen(Colors.Black.ToUInt32());
+    private static readonly IPen LinePen = new ImmutablePen(Colors.Blue.ToUInt32(), 3.0);
+    private static readonly IBrush TipBrush = new ImmutableSolidColorBrush(Colors.Red);
 
     static Joystick()
     {
@@ -43,17 +44,18 @@ public class Joystick : Avalonia.Controls.Control
     public override void Render(DrawingContext c)
     {
         Point center = Bounds.Center;
-        c.FillRectangle(Brushes.White, Bounds);
-        c.DrawEllipse(null, BlackPen, Bounds);
-        c.DrawLine(BlackPen, new Point(Bounds.Left, center.Y), new Point(Bounds.Right, center.Y));
-        c.DrawLine(BlackPen, new Point(center.X, Bounds.Top), new Point(center.X, Bounds.Bottom));
+        c.DrawEllipse(Brushes.White, null, Bounds);
+
+        c.DrawEllipse(null, OutlinePen, Bounds);
+        c.DrawLine(OutlinePen, new Point(Bounds.Left, center.Y), new Point(Bounds.Right, center.Y));
+        c.DrawLine(OutlinePen, new Point(center.X, Bounds.Top), new Point(center.X, Bounds.Bottom));
 
         Point joyPos = new(
             MathHelpers.Lerp(Bounds.Left, Bounds.Right, ((double) JoyX + 128) / 256),
             MathHelpers.Lerp(Bounds.Bottom, Bounds.Top, ((double) JoyY + 128) / 256));
 
-        c.DrawLine(RedPen, center, joyPos);
-        c.DrawEllipse(Brushes.Blue, null, joyPos, 5.0, 5.0);
+        c.DrawLine(LinePen, center, joyPos);
+        c.DrawEllipse(TipBrush, null, joyPos, 5.0, 5.0);
     }
 
     private void UpdatePosition(Point mousePos)
