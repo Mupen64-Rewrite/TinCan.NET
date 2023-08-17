@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -20,23 +21,6 @@ public partial class App : Application
         AvaloniaXamlLoader.Load(this);
     }
 
-    public async Task<bool> PingHost()
-    {
-        if (_postbox == null)
-            return false;
-        using var handle = _postbox.Wait("ClientPingReply");
-        _postbox.Enqueue("ClientPing");
-        try
-        {
-            await handle.Completion.WaitAsync(TimeSpan.FromSeconds(3));
-            return true;
-        }
-        catch (TimeoutException)
-        {
-            return false;
-        }
-    }
-    
     public override void OnFrameworkInitializationCompleted()
     {
         
@@ -53,16 +37,28 @@ public partial class App : Application
 
                 if (ltDesktop.Args is {Length: >= 1})
                 {
-                    _stopSource = new CancellationTokenSource();
+                    _cancelSource = new CancellationTokenSource();
                     _postbox = new Postbox(ltDesktop.Args[0]);
                     _postboxLoop = new Thread(PostboxLoop);
                     Console.WriteLine("GUI postbox started");
                     InitPostboxHandlers();
                     ltDesktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+                    
                     // notify C++ side that we are ready
-                    _postboxLoop.Start(_stopSource.Token);
+                    _postboxLoop.Start(_cancelSource.Token);
                     _postbox.Enqueue("Ready");
-                    Console.WriteLine("READY sent");
+                    
+                    // Setup extra args
+                    if (ltDesktop.Args.Length >= 3)
+                    {
+                        var winHandle = nint.Parse(ltDesktop.Args[1], NumberStyles.HexNumber);
+                        if (winHandle != 0)
+                        {
+                            _mainWindow = winHandle;
+                            WindowUtils.SetWindowSystemID(ltDesktop.Args[2]);
+                        }
+                    }
+                    
                 }
                 else
                 {
@@ -82,6 +78,23 @@ public partial class App : Application
         }
         
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private void OnExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
+    {
+        _cancelSource?.Cancel();
+        e.ApplicationExitCode = 0;
+    }
+    
+    private void PostboxLoop(object? stopToken)
+    {
+        CancellationToken ct = (CancellationToken) (stopToken ?? throw new ArgumentNullException(nameof(stopToken)));
+        while (true)
+        {
+            _postbox!.EventLoop(in ct);
+            if (ct.IsCancellationRequested)
+                return;
+        }
     }
 
     private void InitPostboxHandlers()
@@ -171,25 +184,36 @@ public partial class App : Application
         
     }
 
-    private void PostboxLoop(object? stopToken)
+    public async Task<bool> PingHost()
     {
-        CancellationToken ct = (CancellationToken) (stopToken ?? throw new ArgumentNullException(nameof(stopToken)));
-        while (true)
+        // TODO: Refactor this to MVVM
+        if (_postbox == null)
+            return false;
+        using var handle = _postbox.Wait("ClientPingReply");
+        _postbox.Enqueue("ClientPing");
+        try
         {
-            _postbox!.EventLoop(in ct);
-            if (ct.IsCancellationRequested)
-                return;
+            await handle.Completion.WaitAsync(TimeSpan.FromSeconds(3));
+            return true;
+        }
+        catch (TimeoutException)
+        {
+            return false;
         }
     }
 
-    private void OnExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
+    public void ActivateMainWindow()
     {
-        _stopSource?.Cancel();
-        e.ApplicationExitCode = 0;
+        // TODO: Refactor this to MVVM
+        if (_mainWindow is not { } mainWindow)
+            return;
+        
+        WindowUtils.ActivateWindow(mainWindow);
     }
 
-
     private Postbox? _postbox;
-    private CancellationTokenSource? _stopSource;
+    private CancellationTokenSource? _cancelSource;
     private Thread? _postboxLoop;
+
+    private nint? _mainWindow;
 }

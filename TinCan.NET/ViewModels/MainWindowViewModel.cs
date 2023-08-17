@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TinCan.NET.Helpers;
+using TinCan.NET.Models;
 
 namespace TinCan.NET.ViewModels;
 

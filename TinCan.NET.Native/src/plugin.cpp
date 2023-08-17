@@ -62,7 +62,13 @@ PluginStartup(
     tc::trace(M64MSG_VERBOSE, "Starting GUI");
     auto exe_path =
       tc::get_own_path().parent_path() / "TinCan.NET" TC_EXECUTABLE_EXT;
-    tc::g_process.emplace(exe_path.string(), conn_ep, fmt::format("{:08X}", tc::g_main_win_handle));
+    tc::g_process.emplace(
+      exe_path.string(),
+      boost::process::args += {
+        conn_ep, 
+        fmt::format("{:08X}", tc::g_main_win_handle),
+        std::string(tc::to_string(tc::g_main_win_sys))
+    });
 
     // wait for the GUI to be ready
     tc::trace(M64MSG_VERBOSE, "Waiting for connection...");
@@ -91,8 +97,11 @@ TC_EXPORT(m64p_error) PluginShutdown() {
   tc::g_postbox->enqueue("Shutdown"sv);
 
   tc::trace(M64MSG_VERBOSE, "Awaiting shutdown");
-  if (tc::g_process.has_value() && tc::g_process->joinable())
-    tc::g_process->join();
+  if (tc::g_process.has_value() && tc::g_process->joinable()) {
+    if (!tc::g_process->wait_for(1s)) {
+      tc::g_process->terminate();
+    }
+  }
 
   tc::trace(M64MSG_VERBOSE, "Cleaning up");
 
@@ -153,3 +162,8 @@ TC_EXPORT(void) ReadController(int index, unsigned char* data) {}
 TC_EXPORT(void) SDL_KeyDown(int modifiers, int scancode) {}
 
 TC_EXPORT(void) SDL_KeyUp(int modifiers, int scancode) {}
+
+TC_EXPORT(void) TinCan_SetFrontendHandles(intptr_t main_win_handle, tc::window_system main_win_sys) {
+  tc::g_main_win_handle = main_win_handle;
+  tc::g_main_win_sys    = main_win_sys;
+}

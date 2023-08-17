@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
@@ -19,6 +20,7 @@ public class Joystick : Avalonia.Controls.Control
 
     static Joystick()
     {
+        FocusableProperty.OverrideDefaultValue(typeof(Joystick), true);
         AffectsRender<Joystick>(JoyXProperty, JoyYProperty);
     }
 
@@ -44,9 +46,8 @@ public class Joystick : Avalonia.Controls.Control
     public override void Render(DrawingContext c)
     {
         Point center = Bounds.Center;
-        c.DrawEllipse(Brushes.White, null, Bounds);
-
-        c.DrawEllipse(null, OutlinePen, Bounds);
+        c.DrawRectangle(Brushes.White, OutlinePen, Bounds);
+        c.DrawEllipse(Brushes.White, OutlinePen, Bounds);
         c.DrawLine(OutlinePen, new Point(Bounds.Left, center.Y), new Point(Bounds.Right, center.Y));
         c.DrawLine(OutlinePen, new Point(center.X, Bounds.Top), new Point(center.X, Bounds.Bottom));
 
@@ -123,6 +124,8 @@ public class Joystick : Avalonia.Controls.Control
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
+        e.Handled = true;
+        Focus(NavigationMethod.Pointer, e.KeyModifiers);
         PointerPoint ptrPoint = e.GetCurrentPoint(this);
         if (ptrPoint.Properties.IsLeftButtonPressed)
             UpdatePosition(ptrPoint.Position);
@@ -131,6 +134,8 @@ public class Joystick : Avalonia.Controls.Control
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
+        e.Handled = true;
+        Focus(NavigationMethod.Pointer, e.KeyModifiers);
         PointerPoint ptrPoint = e.GetCurrentPoint(this);
         if (ptrPoint.Properties.IsLeftButtonPressed)
             UpdatePosition(ptrPoint.Position);
@@ -139,6 +144,8 @@ public class Joystick : Avalonia.Controls.Control
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
+        e.Handled = true;
+        Focus(NavigationMethod.Pointer, e.KeyModifiers);
         PointerPoint ptrPoint = e.GetCurrentPoint(this);
         if (ptrPoint.Properties.IsLeftButtonPressed)
             UpdatePosition(ptrPoint.Position);

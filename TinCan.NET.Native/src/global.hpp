@@ -20,6 +20,13 @@
 #include <thread>
 
 namespace tc {
+  enum class window_system : uint32_t {
+    windows = 0,
+    cocoa,
+    x11,
+    wayland
+  };
+
   
   // Core handles
   extern m64p_dynlib_handle g_core_handle;
@@ -28,6 +35,7 @@ namespace tc {
 
   // Frontend handles
   extern intptr_t g_main_win_handle;
+  extern window_system g_main_win_sys;
   
   // IPC objects
   extern std::optional<tc::tempdir_handle> g_tempdir;
@@ -42,6 +50,7 @@ namespace tc {
   extern CONTROL* g_control_states;
   extern std::array<std::atomic_uint32_t, 4> g_input_states;
   
+  std::string_view to_string(tc::window_system sys);
   void post_thread_loop(std::stop_token tok);
   void setup_post_listeners();
   

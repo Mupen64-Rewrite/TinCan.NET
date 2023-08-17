@@ -12,6 +12,7 @@ void* tc::g_log_context;
 void (*tc::g_log_callback)(void* context, int level, const char* str);
 
 intptr_t tc::g_main_win_handle;
+tc::window_system tc::g_main_win_sys;
 
 std::optional<tc::tempdir_handle> tc::g_tempdir;
 std::optional<zmq::context_t> tc::g_zmq_ctx;
@@ -22,6 +23,25 @@ std::optional<boost::process::child> tc::g_process;
 
 CONTROL* tc::g_control_states = nullptr;
 std::array<std::atomic_uint32_t, 4> tc::g_input_states { 0, 0, 0, 0 };
+
+std::string_view tc::to_string(tc::window_system sys) {
+  using namespace std::literals;
+  
+  #define TC_WINDOW_SYSTEM_CASE(name) \
+  case tc::window_system::name:     \
+    return #name##sv;
+
+  switch (sys) { 
+    TC_WINDOW_SYSTEM_CASE(windows)
+    TC_WINDOW_SYSTEM_CASE(cocoa)
+    TC_WINDOW_SYSTEM_CASE(x11)
+    TC_WINDOW_SYSTEM_CASE(wayland)
+    default:
+      return "?"sv;
+  }
+
+  #undef TC_WINDOW_SYSTEM_CASE
+}
 
 static void do_log(const msgpack::object& obj) {
   auto args = obj.as<std::tuple<int, std::string>>();
