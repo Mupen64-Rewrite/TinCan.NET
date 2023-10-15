@@ -20,6 +20,7 @@ public partial class MainWindowViewModel : ObservableObject
     public void OnUpdate()
     {
         _updates++;
+        NotifyAllPropertiesChanged();
     }
 
     public uint Value
@@ -32,17 +33,19 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    private void ToggleRapidFire(Buttons.Mask bit)
+    private void NotifyAllPropertiesChanged()
     {
-        _rapidFireMask = (_rapidFireMask & ~bit) | (!_rapidFireMask.HasFlag(bit) ? bit : 0);
-
-        // we notify of all properties changing 
-        // theoretically we could correlate the changed bit to the value, but who cares
         foreach (var item in typeof(MainWindowViewModel).GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.SetProperty))
         {
             OnPropertyChanged(item.Name);
         }
+    }
+
+    [RelayCommand]
+    private void ToggleRapidFire(Buttons.Mask bit)
+    {
+        _rapidFireMask = (_rapidFireMask & ~bit) | (!_rapidFireMask.HasFlag(bit) ? bit : 0);
+        NotifyAllPropertiesChanged();
     }
 
     private void SetButtonMask(Buttons.Mask bit, bool value, [CallerMemberName] string? callerMemberName = null)
@@ -50,7 +53,7 @@ public partial class MainWindowViewModel : ObservableObject
         // if button state is manually changed, we remove this button's rapidfire flag
         _rapidFireMask &= ~bit;
         _buttonMask = (_buttonMask & ~bit) | (value ? bit : 0);
-        OnPropertyChanged(callerMemberName);
+        NotifyAllPropertiesChanged();
     }
 
     public bool BtnDUp
