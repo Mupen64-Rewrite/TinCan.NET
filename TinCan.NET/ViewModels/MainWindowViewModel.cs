@@ -13,13 +13,8 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private sbyte _joyY;
 
     private Buttons.Mask _buttonMask;
-
     // a mask of buttons which currently have rapidfire enabled 
     private Buttons.Mask _rapidFireMask;
-
-    private static readonly TimeSpan JoyBufferTimeout = TimeSpan.FromMilliseconds(10);
-
-    private DateTime _lastJoyUpdate = DateTime.MinValue;
     private int _updates;
 
     public void OnUpdate()
@@ -41,14 +36,19 @@ public partial class MainWindowViewModel : ObservableObject
     private void ToggleRapidFire(Buttons.Mask bit)
     {
         _rapidFireMask = (_rapidFireMask & ~bit) | (!_rapidFireMask.HasFlag(bit) ? bit : 0);
+
+        // we notify of all properties changing 
+        // theoretically we could correlate the changed bit to the value, but who cares
+        foreach (var item in typeof(MainWindowViewModel).GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.SetProperty))
+        {
+            OnPropertyChanged(item.Name);
+        }
     }
 
     private void SetButtonMask(Buttons.Mask bit, bool value, [CallerMemberName] string? callerMemberName = null)
     {
         // if button state is manually changed, we remove this button's rapidfire flag
         _rapidFireMask &= ~bit;
-
-        OnPropertyChanging(callerMemberName);
         _buttonMask = (_buttonMask & ~bit) | (value ? bit : 0);
         OnPropertyChanged(callerMemberName);
     }
