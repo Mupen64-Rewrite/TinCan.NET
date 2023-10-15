@@ -69,7 +69,7 @@
                 <ToggleButton Grid.Row="1" Grid.Column="7" Content="{icons:MaterialIconExt MenuUp}" IsChecked="{Binding BtnCUp}" Tag="2048" PointerPressed="Button_OnPointerPressed"/>
                 <ToggleButton Grid.Row="3" Grid.Column="7" Content="{icons:MaterialIconExt MenuDown}" IsChecked="{Binding BtnCDown}" Tag="1024" PointerPressed="Button_OnPointerPressed"/>
                 <ToggleButton Grid.Row="2" Grid.Column="6" Content="{icons:MaterialIconExt MenuLeft}" IsChecked="{Binding BtnCLeft}" Tag="512" PointerPressed="Button_OnPointerPressed"/>
-                <ToggleButton Grid.Row="2" Grid.Column="8" Content="{icons:MaterialIconExt MenuRight}" IsChecked="{Binding BtnCRight}" Tag="245" PointerPressed="Button_OnPointerPressed"/>
+                <ToggleButton Grid.Row="2" Grid.Column="8" Content="{icons:MaterialIconExt MenuRight}" IsChecked="{Binding BtnCRight}" Tag="256" PointerPressed="Button_OnPointerPressed"/>
                 <TextBlock Grid.Row="2" Grid.Column="7" Text="C" />
 
                 <!-- A, B, Start -->
