@@ -56,26 +56,26 @@
             </Expander.Styles>
             <Grid RowDefinitions="*,*,*,*,*,*" ColumnDefinitions="*,*,*,*,*,*,*,*,*">
                 <!-- L, Z, R -->
-                <ToggleButton Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Content="L" IsChecked="{Binding BtnL}"/>
-                <ToggleButton Grid.Row="0" Grid.Column="3" Grid.ColumnSpan="3" Content="Z" IsChecked="{Binding BtnZ}"/>
-                <ToggleButton Grid.Row="0" Grid.Column="6" Grid.ColumnSpan="3" Content="R" IsChecked="{Binding BtnR}"/>
+                <ToggleButton Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Content="L" IsChecked="{Binding BtnL}" Tag="8192" PointerPressed="Button_OnPointerPressed"/>
+                <ToggleButton Grid.Row="0" Grid.Column="3" Grid.ColumnSpan="3" Content="Z" IsChecked="{Binding BtnZ}" Tag="32" PointerPressed="Button_OnPointerPressed"/>
+                <ToggleButton Grid.Row="0" Grid.Column="6" Grid.ColumnSpan="3" Content="R" IsChecked="{Binding BtnR}" Tag="4096" PointerPressed="Button_OnPointerPressed"/>
                 <!-- D-Pad -->
-                <ToggleButton Grid.Row="1" Grid.Column="1" Content="{icons:MaterialIconExt ArrowUpBold}" IsChecked="{Binding BtnDUp}"/>
-                <ToggleButton Grid.Row="3" Grid.Column="1" Content="{icons:MaterialIconExt ArrowDownBold}" IsChecked="{Binding BtnDDown}"/>
-                <ToggleButton Grid.Row="2" Grid.Column="0" Content="{icons:MaterialIconExt ArrowLeftBold}" IsChecked="{Binding BtnDLeft}"/>
-                <ToggleButton Grid.Row="2" Grid.Column="2" Content="{icons:MaterialIconExt ArrowRightBold}" IsChecked="{Binding BtnDRight}"/>
+                <ToggleButton Grid.Row="1" Grid.Column="1" Content="{icons:MaterialIconExt ArrowUpBold}" IsChecked="{Binding BtnDUp}" Tag="8" PointerPressed="Button_OnPointerPressed"/>
+                <ToggleButton Grid.Row="3" Grid.Column="1" Content="{icons:MaterialIconExt ArrowDownBold}" IsChecked="{Binding BtnDDown}" Tag="4" PointerPressed="Button_OnPointerPressed"/>
+                <ToggleButton Grid.Row="2" Grid.Column="0" Content="{icons:MaterialIconExt ArrowLeftBold}" IsChecked="{Binding BtnDLeft}" Tag="2" PointerPressed="Button_OnPointerPressed"/>
+                <ToggleButton Grid.Row="2" Grid.Column="2" Content="{icons:MaterialIconExt ArrowRightBold}" IsChecked="{Binding BtnDRight}" Tag="1" PointerPressed="Button_OnPointerPressed"/>
 
                 <!-- C buttons -->
-                <ToggleButton Grid.Row="1" Grid.Column="7" Content="{icons:MaterialIconExt MenuUp}" IsChecked="{Binding BtnCUp}"/>
-                <ToggleButton Grid.Row="3" Grid.Column="7" Content="{icons:MaterialIconExt MenuDown}" IsChecked="{Binding BtnCDown}"/>
-                <ToggleButton Grid.Row="2" Grid.Column="6" Content="{icons:MaterialIconExt MenuLeft}" IsChecked="{Binding BtnCLeft}"/>
-                <ToggleButton Grid.Row="2" Grid.Column="8" Content="{icons:MaterialIconExt MenuRight}" IsChecked="{Binding BtnCRight}"/>
+                <ToggleButton Grid.Row="1" Grid.Column="7" Content="{icons:MaterialIconExt MenuUp}" IsChecked="{Binding BtnCUp}" Tag="2048" PointerPressed="Button_OnPointerPressed"/>
+                <ToggleButton Grid.Row="3" Grid.Column="7" Content="{icons:MaterialIconExt MenuDown}" IsChecked="{Binding BtnCDown}" Tag="1024" PointerPressed="Button_OnPointerPressed"/>
+                <ToggleButton Grid.Row="2" Grid.Column="6" Content="{icons:MaterialIconExt MenuLeft}" IsChecked="{Binding BtnCLeft}" Tag="512" PointerPressed="Button_OnPointerPressed"/>
+                <ToggleButton Grid.Row="2" Grid.Column="8" Content="{icons:MaterialIconExt MenuRight}" IsChecked="{Binding BtnCRight}" Tag="256" PointerPressed="Button_OnPointerPressed"/>
                 <TextBlock Grid.Row="2" Grid.Column="7" Text="C" />
 
                 <!-- A, B, Start -->
-                <ToggleButton Grid.Row="2" Grid.Column="4" Content="S" IsChecked="{Binding BtnStart}"/>
-                <ToggleButton Grid.Row="4" Grid.Column="5" Content="B" IsChecked="{Binding BtnB}"/>
-                <ToggleButton Grid.Row="5" Grid.Column="6" Content="A" IsChecked="{Binding BtnA}"/>
+                <ToggleButton Grid.Row="2" Grid.Column="4" Content="S" IsChecked="{Binding BtnStart}" Tag="16" PointerPressed="Button_OnPointerPressed"/>
+                <ToggleButton Grid.Row="4" Grid.Column="5" Content="B" IsChecked="{Binding BtnB}" Tag="64" PointerPressed="Button_OnPointerPressed"/>
+                <ToggleButton Grid.Row="5" Grid.Column="6" Content="A" IsChecked="{Binding BtnA}" Tag="128" PointerPressed="Button_OnPointerPressed"/>
             </Grid>
         </Expander>
     </StackPanel>
