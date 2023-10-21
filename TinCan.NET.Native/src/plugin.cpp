@@ -98,7 +98,8 @@ TC_EXPORT(m64p_error) PluginShutdown() {
 
   tc::trace(M64MSG_VERBOSE, "Awaiting shutdown");
   if (tc::g_process.has_value() && tc::g_process->joinable()) {
-    if (!tc::g_process->wait_for(1s)) {
+    std::this_thread::sleep_for(1s);
+    if (tc::g_process->running()) {
       tc::g_process->terminate();
     }
   }

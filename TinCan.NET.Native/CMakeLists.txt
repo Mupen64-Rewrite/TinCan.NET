@@ -11,6 +11,8 @@ endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
+set(Boost_USE_STATIC_LIBS ON)
+
 if(DEFINED VCPKG_VERBOSE)
   find_package(fmt REQUIRED)
   find_package(Boost REQUIRED COMPONENTS filesystem)
