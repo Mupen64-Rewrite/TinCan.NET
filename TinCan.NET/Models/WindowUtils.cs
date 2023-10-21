@@ -4,6 +4,8 @@ using System.Runtime.Versioning;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 
+using X11 = TinCan.NET.Models.Libraries.X11;
+
 namespace TinCan.NET.Models;
 
 public static class WindowUtils
@@ -66,7 +68,8 @@ public static class WindowUtils
     [SupportedOSPlatform("macos13.0")]
     private static void ActivateWindowX11(nint handle)
     {
-        
+        X11.XRaiseWindow(X11.DisplayPtr, handle);
+        X11.XSetInputFocus(X11.DisplayPtr, handle, X11.RevertToPointerRoot, X11.CurrentTime);
     }
     
     [SupportedOSPlatform("linux")]
