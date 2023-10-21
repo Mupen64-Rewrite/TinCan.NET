@@ -40,12 +40,12 @@ public partial class App : Application
                     _cancelSource = new CancellationTokenSource();
                     _postbox = new Postbox(ltDesktop.Args[0]);
                     _postboxLoop = new Thread(PostboxLoop);
-                    Console.WriteLine("GUI postbox started");
                     InitPostboxHandlers();
                     ltDesktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
                     
                     // notify C++ side that we are ready
                     _postboxLoop.Start(_cancelSource.Token);
+                    Console.WriteLine("Sending ready...");
                     _postbox.Enqueue("Ready");
                     
                     // Setup extra args

@@ -59,9 +59,9 @@ PluginStartup(
     auto wait_handle = tc::g_postbox->wait("Ready");
 
     // Start the GUI
-    tc::trace(M64MSG_VERBOSE, "Starting GUI");
     auto exe_path =
       tc::get_own_path().parent_path() / "TinCan.NET" TC_EXECUTABLE_EXT;
+    tc::tracef(M64MSG_INFO, "Attempting to use {}", exe_path.string());
     tc::g_process.emplace(
       exe_path.string(),
       boost::process::args += {

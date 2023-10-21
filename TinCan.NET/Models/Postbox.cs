@@ -99,10 +99,8 @@ public class Postbox
                     {
                         if (awaiter.Event != key)
                             continue;
-                        Console.WriteLine($"found reply: {key}");
                         if (!(awaiter.Acceptor?.Invoke(args) ?? true))
                             continue;
-                        Console.WriteLine($"reply accepted: {key}");
                         awaiter.Notification.SetResult();
                     }
                 }
